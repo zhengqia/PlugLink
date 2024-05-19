@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>我的办公</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet">
+  <script src="../../res/jquery-3.6.0.min.js"></script>
+  <script src="../../res/layui/layui.js"></script> 
+  <script src="../../res/socket.io.js"></script> 
+
+</head>
+
+<body class="layui-padding-3">
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md9">
+	<div class="layui-card">
+	<div class="layui-card-header" style="display: flex; align-items: center; justify-content: space-between; height: 50px;">
+	  <span>我的快捷方式</span>
+	  <div>
+		<button type="button" class="layui-btn layui-btn-radius" onclick="goToAddApp()">添加常用插件</button>
+		<button type="button" class="layui-btn layui-btn-normal layui-btn-radius" lay-on="test-page-custom">添加常用网址</button>
+	  </div>
+	</div>
+
+			  <div class="layui-card-body">
+				<div class="layui-row layui-col-space10" id="dataDisplaySection">
+					
+						<!--读取数据库-->
+
+				  </div>
+			  </div>
+	</div>
+      </div>
+      <div class="layui-col-md3">
+	<div class="layui-card">
+			  <div class="layui-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+				  <span>学习中心</span>
+				  <a href="https://drgphlxsfa.feishu.cn/wiki/GeuMwglQdi65BbkclgLcBUCFnRf" style="color: #01AAED;" target="_blank">更多</a>
+				</div>
+
+			  <div class="layui-card-body">
+				<dl class="layuiadmin-card-status">
+				  <dd>
+            <div><a href="javascript:;" style="margin-right: 10px;"><i class="layui-icon layui-icon-read"></i></a></div>
+            <div>
+              <p><a href="https://drgphlxsfa.feishu.cn/wiki/NYVqwatqziPMjQkvRZdcrR9mn8e" target="_blank">PlugLink介绍</a></p>
+            </div>
+          </dd>
+				  <dd>
+					<div><a href="javascript:;" style="margin-right: 10px;"><i class="layui-icon layui-icon-read"></i></a></div>
+					<div>
+					  <p><a href="https://drgphlxsfa.feishu.cn/wiki/SMYyw9tGbiv0SlkKNp6cuiZVnRe" target="_blank">PlugLink使用者手册</a></p>
+					</div>
+				  </dd>
+
+				  <dd>
+					<div><a href="javascript:;" style="margin-right: 10px;"><i class="layui-icon layui-icon-read"></i></a></div>
+					<div>
+					  <p><a href="https://drgphlxsfa.feishu.cn/wiki/VO9owlx7Oi9jSxkQuWecirNUndd" target="_blank">PlugLink开发者手册</a></p>
+					</div>
+				  </dd>
+					
+				</dl>  
+			  </div>
+			</div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    function goToAddApp() {
+        window.open('../plugins/myplugins_list.html', '_blank');
+    }
+</script>
+
+<script>
+layui.use(function(){
+  var $ = layui.$;
+  var layer = layui.layer;
+  var util = layui.util;
+  var form = layui.form;
+  // 事件
+  util.on('lay-on', {
+    'test-page-custom': function(){
+      layer.open({
+        type: 1,
+        area: '450px',
+        resize: false,
+        shadeClose: true,
+        title: '添加网址',
+        content: `
+ 
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+				
+			  <div class="layui-form-item">
+				<div class="layui-inline">
+				  <label class="layui-form-label">网址</label>
+				  <div class="layui-input-inline layui-input-wrap">
+					<input type="text" name="website" autocomplete="off" lay-reqtext="请输入完整网址" lay-affix="clear" class="layui-input">
+				  </div>
+				  <div class="layui-form-mid" style="padding: 0!important;"> 
+					<button type="button" class="layui-btn layui-btn-primary">连接</button>
+				  </div>
+				</div>
+			  </div>
+
+			  <div class="layui-form-item">
+				<div class="layui-inline">
+				  <label class="layui-form-label">网页名</label>
+				  <div class="layui-input-inline layui-input-wrap">
+					<input type="text" name="webname" autocomplete="off" lay-reqtext="请输入网页名称" lay-affix="clear" class="layui-input">
+				  </div>
+				</div>
+			  </div>
+
+			  <div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">网站描述</label>
+				<div class="layui-input-block">
+				  <textarea placeholder="请输入内容" class="layui-textarea"></textarea>
+				</div>
+			  </div>
+
+              <div class="layui-form-item" style="text-align: right;">
+                <button class="layui-btn layui-btn" lay-submit lay-filter="add">添加</button>
+              </div>
+				
+            </div>
+          </div>
+
+        `,
+		success: function(layero, index){
+		  var connectButton = layero.find('.layui-btn-primary'); // "连接"按钮
+			connectButton.on('click', function() {
+			  var websiteUrl = layero.find('input[name="website"]').val(); // 获取用户输入的网址
+			  if (!websiteUrl) {
+				layer.msg('请输入网址');
+				return; // 如果没有输入网址，则不执行任何操作
+			  }
+
+			  // 发送POST请求到后端
+			  fetch('/', {
+				method: 'POST',
+				headers: {
+				  'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					action: 'conn_website',
+					url: websiteUrl
+				}),
+			  })
+			  .then(response => response.json())
+			  .then(data => {
+				// 使用从后端获取的标题和描述更新输入框
+				var webnameInput = layero.find('input[name="webname"]');
+				var webdescTextarea = layero.find('textarea');
+				webnameInput.val(data.title);
+				webdescTextarea.val(data.description);
+			  })
+			  .catch(error => {
+				console.error('Error:', error);
+				layer.msg('获取信息失败');
+			  });
+			});
+		
+          // “添加”按钮的点击事件处理逻辑
+          form.on('submit(add)', function(formdata) {
+            // 获取用户输入的网址、网页名、描述
+            var websiteUrl = layero.find('input[name="website"]').val();
+            var webName = layero.find('input[name="webname"]').val();
+            var webDescription = layero.find('textarea').val();
+
+            // 确保网址和网页名不为空
+            if (!websiteUrl || !webName) {
+              layer.msg('网址和网页名不能为空');
+              return false; // 阻止表单提交
+            }
+
+            // 发送POST请求到后端接口
+            fetch('/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+    			action: 'add_website', // 指定操作类型为添加网站
+                url: websiteUrl,
+                title: webName,
+                description: webDescription
+              }),
+            })
+            .then(response => response.json())
+			.then(data => {
+			  // 处理成功响应
+			  layer.msg('添加成功', {time: 1000}, function() {
+				window.location.reload(); // 添加成功后刷新页面
+			  });
+			  // layer.close(index); // 如果你还希望关闭弹窗，可以根据需要决定是否取消注释这行
+
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              layer.msg('添加失败');
+            });
+
+            return false; // 阻止表单原生提交
+          });
+			
+			
+		}
+		  
+		  
+      });
+    }
+  })
+});
+</script>
+
+<script>//检查网址是否正确
+layui.use(['form', 'layer'], function(){
+  var form = layui.form;
+  var layer = layui.layer;
+  
+  // 网址格式验证的正则表达式
+  var urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+
+  // 监听提交
+  form.on('submit(add)', function(data) {
+    var websiteUrl = data.field.website; // 获取用户输入的网址
+    var webname = data.field.webname; // 获取网页名
+    var webdesc = data.field.webdesc; // 获取网站描述，注意根据实际字段名修改
+
+    // 检查网址是否为空
+    if (!websiteUrl.trim()) {
+      layer.msg('网址不能为空');
+      return false; // 阻止表单提交
+    }
+
+    // 检查网址格式
+    if (!urlPattern.test(websiteUrl.trim())) {
+      layer.msg('请输入正确的网址格式');
+      return false; // 阻止表单提交
+    }
+
+    // 检查标题是否为空
+    if (!webname.trim()) {
+      layer.msg('标题不能为空');
+      return false; // 阻止表单提交
+    }
+
+    // 检查描述是否为空
+    if (!webdesc.trim()) {
+      layer.msg('描述不能为空');
+      return false; // 阻止表单提交
+    }
+
+    return false; // 阻止表单的默认提交行为
+  });
+});
+	
+</script>
+	
+<script>//刷新快捷方式页面加载
+	layui.use(['jquery'], function(){
+		var $ = layui.jquery;
+
+		// 页面加载完成后立即执行的函数
+		$(document).ready(function(){
+			$.ajax({
+				type: "POST",
+				url: "/",
+				contentType: "application/json",
+				data: JSON.stringify({ action: "fetch_myfast" }),
+				success: function(response){
+					// 这里假设后端直接返回渲染好的HTML
+					$('#dataDisplaySection').html(response);
+				},
+				error: function(xhr, status, error){
+					console.error("An error occurred: " + status + " " + error);
+				}
+			});
+		});
+	});
+</script>
+
+<script>//删除快捷方式
+layui.use(['layer', 'jquery'], function() {
+  var layer = layui.layer;
+  var $ = layui.jquery; // 确保jQuery可用
+
+  // 事件委托，监听在#dataDisplaySection中现在或将来出现的.del-fast按钮的点击事件
+  $('#dataDisplaySection').on('click', '.del-fast', function() {
+    var itemId = $(this).data('id'); // 获取data-id的值
+    layer.confirm('确认要删除吗？', {icon: 3, title: '提示'}, function(index) {
+      // 用户确认删除
+      $.ajax({
+        url: '/', // 后端处理删除的URL
+        type: 'POST',
+        contentType: 'application/json', // 设置请求的内容类型
+        data: JSON.stringify({ action: 'del_fast', id: itemId }), // 将数据封装成JSON字符串
+        success: function(response) {
+          // 处理成功的回调
+          layer.msg('删除成功', {icon: 1});
+          window.location.reload(); // 刷新页面
+        },
+        error: function() {
+          // 处理失败的回调
+          layer.msg('删除失败，请重试', {icon: 2});
+        }
+      });
+      layer.close(index);
+    }, function() {
+      // 用户取消删除
+      layer.msg('取消删除', {icon: 0});
+    });
+  });
+});
+</script>
+	
+<script>//点击快捷方式时计数
+layui.use(['jquery'], function(){
+    var $ = layui.jquery;
+
+    // 由于链接是动态加载的，使用 document 绑定事件，确保动态添加的元素也能绑定事件
+    $(document).on('click', '.utimes-link', function(e){
+        var id = $(this).data('id'); // 从被点击的链接获取数据 ID
+
+        // 发送异步请求来增加计数，不阻止默认的链接跳转
+        $.ajax({
+            type: 'POST',
+            url: '/', // 替换为您的实际处理 URL
+            contentType: 'application/json',
+            data: JSON.stringify({
+                action: 'utimes',
+                id: id
+            }),
+            success: function(response) {
+                console.log('Count incremented successfully');
+            },
+            error: function(xhr, status, error) {
+                console.error("Error incrementing count: ", status, error);
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

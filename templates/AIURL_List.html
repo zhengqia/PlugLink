@@ -1,0 +1,97 @@
+<div class="layui-tab" lay-filter="test-hash">
+  <ul class="layui-tab-title">
+    {% for name in sheet_names %}
+    <li {% if loop.first %}class="layui-this"{% endif %} lay-id="{{ loop.index }}">{{ name }}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="layui-tab-content">
+    {% for name in sheet_names %}
+    <div class="layui-tab-item {% if loop.first %}layui-show{% endif %}" id="tab-content-{{ loop.index }}">
+      <table class="layui-table">
+        <thead>
+          <tr>
+            {% for column in column_names %}
+            <th>{{ column }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in all_records %}
+          {% if record[-1] == name %}
+          <tr>
+            {% for field in record[:-1] %}
+            <td>
+              {% set field_str = field|string %}
+              {% if field_str.startswith('http://') or field_str.startswith('https://') %}
+                {% if field_str|length > 30 %}
+                  <a href="{{ field_str }}" target="_blank">超长网址，直接访问</a>
+                {% else %}
+                  <a href="{{ field_str }}" target="_blank">{{ field_str }}</a>
+                {% endif %}
+              {% else %}
+                {{ field_str }}
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+	
+	
+</div>
+	
+<script>
+layui.use(['element', 'jquery'], function(){
+    var element = layui.element;
+    var $ = layui.jquery;
+    
+    element.on('tab(docDemoTabBrief)', function(){
+        var clickName = this.innerText; // 获取点击的选项卡名称
+        console.log("Clicked tab name: ", clickName); // 仅作示例，实际应用中可以移除
+
+        // 示例：使用AJAX发送clickName到服务器
+        $.ajax({
+            url: '/handle-click-name', // 你的服务器端路由
+            type: 'POST',
+            data: { clickName: clickName },
+            success: function(response) {
+                // 这里处理服务器的响应，比如根据响应更新页面内容
+            },
+            error: function(xhr, status, error) {
+                console.error("Error sending clickName to server: ", error);
+            }
+        });
+    });
+});
+</script>
+
+	
+<script>
+//layui.use(function(){
+//  var element = layui.element;
+layui.use(['element'], function(){
+  var element = layui.element;
+  
+  // hash 地址定位
+  var hashName = 'tabid'; // hash 名称
+  var layid = location.hash.replace(new RegExp('^#'+ hashName + '='), ''); // 获取 lay-id 值
+    
+  // 初始切换
+  element.tabChange('test-hash', layid);
+  // 切换事件
+  element.on('tab(test-hash)', function(obj){
+    location.hash = hashName +'='+ this.getAttribute('lay-id');
+  });
+});
+</script>	
+	
+
+

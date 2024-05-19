@@ -1,0 +1,23 @@
+
+    {% for item in items %}
+    <div class="layui-col-xs12 layui-col-sm4">
+        <div class="layuiadmin-card-text">
+            <div class="layui-text-top">
+                <i class="layui-icon {{ item.icon_class }}" style="{{ 'color: #1E9FFF;' if item.icon_class == 'layui-icon-website' else '' }}"></i>
+                <a href="{{ item.URL }}" target="_blank" class="utimes-link" data-id="{{ item.ID }}" style="{{ 'color: #1E9FFF;' if item.icon_class == 'layui-icon-website' else 'color: #16abbb;' }}">
+                    {{ item.Title|truncate(16, true, '...') }}
+                </a>
+            </div>
+            <p class="layui-text-center">
+                {{ item.Des|truncate(40, true, '...') }}
+            </p>
+            <p class="layui-text-bottom">
+				<button type="button" class="layui-btn layui-btn-sm layui-btn-primary del-fast" data-id="{{ item.ID }}">
+					<i class="layui-icon layui-icon-delete"></i>
+				</button>
+				<span>{{ item.Utimes }}次 | {{ item.UbDate }}</span>
+			</p>
+        </div>
+    </div>
+    {% endfor %}
+

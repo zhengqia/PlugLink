@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>正在注册插件</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet">
+
+</head>
+<script src="../../res/layui/layui.js"></script> 
+<script src="../../res/socket.io.js"></script> 
+
+<style>
+/* 自定义样式设置面板背景色 */
+.custom-panel {
+  background-color: #2f363c; /* 设置背景色 */
+  color: #f7f7f7; /* 设置字体颜色 */
+  border-color: #16baaa; /* 设置边框颜色为绿色 */
+  border-width: 1px; /* 设置边框宽度为1px */
+  /*width: 600px;  设置面板宽度为200像素 */
+
+}
+.custom-panel-content {
+  font-size: 20px; /* 设置字体大小为16像素 */
+  line-height: 2; /* 设置行距为1.5倍字体大小 */
+  letter-spacing: 1.5px; /* 设置字距为1像素 */
+  overflow-y: auto; /* 允许垂直滚动 */
+  max-height: 300px; /* 设置最大高度，超过此高度将显示滚动条 */
+
+}
+body {
+    background-color: #2f363c; /* 设置背景色 */
+}
+.layui-btn-container {
+  text-align: right; /* 将按钮容器内的内容右对齐 */
+}
+
+
+</style>
+
+	
+<body class="layui-padding-3">
+<div style="padding: 32px;">
+<div class="layui-fluid">
+	<div class="layui-row layui-col-space15">
+		<div class="layui-container">
+			<form class="layui-form" action="">
+				<div class="layui-row">
+					<div class="layui-col-md-offset2 layui-col-md-6">
+						
+						<div class="layui-panel custom-panel">
+						  <div class="custom-panel-content" style="padding: 20px;">
+							  即将加载数据....<br>
+							</div>
+						
+						</div>
+						<br>
+							<div class="layui-progress layui-progress-big" lay-filter="progressBar">
+							  <div class="layui-progress-bar" lay-percent="0%"></div>
+							</div>
+						<hr class="layui-border-green">
+						<div class="layui-btn-container" class="layui-btn-container">
+						  <button type="button" class="layui-btn layui-btn-radius" id="backButton" style="display:none;" onclick="goBack()">返回</button>
+						  <button type="button" class="layui-btn layui-btn-warm layui-btn-radius" id="completeButton" style="display:none;">安装完成</button>
+						</div>
+						
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>
+</body>
+</html>
+<script>//面板信息更新
+layui.use(['jquery', 'layer', 'element'], function(){
+  var $ = layui.jquery,
+      layer = layui.layer,
+      element = layui.element;
+
+  var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+  socket.on('connect', function() {
+    console.log('Connected to the server.');
+    socket.emit('reg_myplugin', {action: "reg_myplugin"});
+  });
+
+  socket.on('reg_progress', function(data) {
+    console.log(data.message);
+    var panel = $('.custom-panel div');
+    panel.append(data.message + '<br>'); // 更新面板内容
+    panel.scrollTop(panel.prop("scrollHeight")); // 滚动到底部
+
+    // 更新进度条
+    if(data.progress) {
+        $('.layui-progress-bar').attr('lay-percent', data.progress + '%');
+        element.progress('progressBar', data.progress + '%');
+    }
+
+    // 根据状态显示或隐藏按钮
+    if(data.status === 'error') {
+      $('#backButton').show();
+    } else if(data.progress === 100) {
+      $('#completeButton').show();
+    }
+  });
+
+  socket.on('disconnect', function() {
+    console.log('Disconnected from the server.');
+  });
+
+  socket.on('error', function(error) {
+    console.log('Error: ', error);
+    layer.msg('与服务器连接出现错误，请检查。');
+  });
+	
+  // 当"安装完成"按钮被点击时
+  $('#completeButton').on('click', function() {
+    // 跳转到myopenlist.html页面
+    window.location.href = 'myopenlist.html';
+  });
+
+});
+
+</script>
+<script>
+// 定义一个函数，用于返回上一级网页
+function goBack() {
+  history.back(); // 调用history对象的back方法返回上一级网页
+}
+</script>
+

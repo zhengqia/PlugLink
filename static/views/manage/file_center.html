@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>临时文件管理</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet">
+  <script src="../../res/jquery-3.6.0.min.js"></script>
+</head>
+<script src="../../res/layui/layui.js"></script> 
+<script src="../../res/socket.io.js"></script> 
+
+<body class="layui-padding-3">
+	
+	<div class="layui-panel layui-border-green" style="width: 80%; margin: 10px auto;">
+	  <div style="padding: 16px;">
+		本页为所有插件的临时文件，在这里可以统一删除全部文件<br>
+		仅能删除已经安装的插件中的临时文件夹<br>
+	  </div>
+	</div>	
+
+<table class="layui-hide" id="plugin-table"></table>
+<script type="text/html" id="toolbar">
+  <div class="layui-btn-container">
+	<button class="layui-btn layui-btn-sm" lay-event="getCheckData">删除选中</button>
+  </div>
+</script>
+
+<!-- 插件名称的模板 -->
+<script type="text/html" id="plugin-name-templet">
+  <a href="" target="_blank">{{= d.PlugName }}</a>
+</script>
+
+<!-- 操作按钮的模板 -->
+<script type="text/html" id="action-templet">
+  <button type="button" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除该目录下所有文件</button>
+</script>
+
+<script>
+layui.use(['table', 'form'], function(){
+  var table = layui.table;
+
+  table.render({
+    elem: '#plugin-table',
+    url: '/', // 与后端路由匹配
+    method: 'POST',
+	  contentType: 'application/json', // 设置发送的内容类型为 JSON
+	  headers: { 
+		'Content-Type': 'application/json' // 指定请求头
+	  },
+    where: { action: 'file_center_list' }, // 发送表单数据而非 JSON
+    toolbar: '#toolbar', // 使用自定义的工具条
+    defaultToolbar: ['filter'], // 默认工具条项
+
+    page: true,
+    cols: [[
+      {type: 'checkbox', fixed: 'left', width: 80},
+      {field: 'PlugName', title: '插件名称', width: 300},
+      {field: 'Directory', title: '目录路径', width: 450},
+      {field: 'FileCount', title: '文件数', width: 120, sort: true},
+      {field: 'TotalSizeMB', title: '总空间(MB)', width: 150, sort: true},
+      {title: '操作', minWidth: 100, toolbar: '#action-templet', fixed: 'right'}
+    ]]
+  });
+	
+  // 监听工具条事件
+  table.on('toolbar(plugin-table)', function(obj){
+    var checkStatus = table.checkStatus(obj.config.id);
+    if (obj.event === 'getCheckData') {
+      var data = checkStatus.data;
+      if (data.length > 0) {
+        layer.confirm('确认删除选中的 ' + data.length + ' 个目录的所有文件吗？', function(index){
+          deleteDirectories(data.map(a => a.Directory));
+          layer.close(index);
+        });
+      } else {
+        layer.msg('请选择要删除的目录');
+      }
+    }
+  });
+
+  // 单个删除
+  table.on('tool(plugin-table)', function(obj){
+    if (obj.event === 'delete') {
+      layer.confirm('确定删除此目录下的所有文件吗？', function(index){
+        deleteDirectories([obj.data.Directory]);
+        layer.close(index);
+      });
+    }
+  });
+
+  // 发送删除请求的函数
+  function deleteDirectories(directories) {
+    fetch('/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action: 'del_upload_file', directories: directories })
+    }).then(response => response.json())
+      .then(data => {
+        if (data.code === 0) {
+          layer.msg('删除成功');
+          table.reload('plugin-table'); // 重新加载表格
+        } else {
+          layer.msg('删除失败: ' + data.msg);
+        }
+      }).catch(error => console.error('Error:', error));
+  }
+
+});
+</script>
+
+
+	
+	
+<!--
+
+<table class="layui-hide" id="ID-table-demo-templet"></table>
+<script type="text/html" id="ID-table-demo-templet-user">
+  <a href="" target="_blank">{{= d.username }}</a>
+</script>
+<script type="text/html" id="ID-table-demo-templet-switch">
+  <input type="checkbox" name="status" value="{{= d.id }}" title="热|" lay-skin="switch" lay-filter="demo-templet-status" {{= d.id == 10001 ? "checked" : "" }}>
+</script>
+<script type="text/html" id="ID-table-demo-templet-other">
+  <span class="layui-badge-rim" style="margin-right: 10px;">评分：{{= d.score }}</span>
+  <span class="layui-badge-rim">职业：{{= d.classify }}</span>
+  
+  <span class="layui-badge-rim">下标：{{= d.LAY_INDEX }}</span>
+  <span class="layui-badge-rim">序号：{{= d.LAY_NUM }}</span>
+  
+</script>
+ 
+
+<script>
+layui.use(['table'], function(){
+  var table = layui.table;
+  var form = layui.form;
+  
+  // 创建渲染实例
+  table.render({
+    elem: '#ID-table-demo-templet',
+    url:'/static/json/2/table/user.json', // 此处为静态模拟数据，实际使用时需换成真实接口
+    page: true,
+    height: '315px',
+    cols: [[
+      {type: 'checkbox', fixed: 'left'},
+      // 未自定义模板的普通列
+      {field:'id', fixed: 'left', width:80, title: 'ID', sort: true},
+      // 模板 - 选择器写法
+      {field:'username', width:80, title: '用户', templet: '#ID-table-demo-templet-user'},
+      // 模板 - 函数写法
+      {field:'sex', width:60, title: '性别', templet: function(d){
+        if(d.sex === '男'){
+          return '<span style="color: blue">♂</span>';
+        } else {
+          return '<span style="color: pink">♀</span>';
+        }
+      }},
+      // 模板 - 普通字符写法
+      {field:'city', width:115, title: '城市', templet: '<div><i class="layui-icon layui-icon-location"></i> {{= d.city }}</div>'},
+      // 模板中可包含任意字段、任意内容（如表单等）
+      {title: '状态', width:85, templet: '#ID-table-demo-templet-switch'},
+      {title: '其他', minWidth:200, templet: '#ID-table-demo-templet-other'}
+    ]]
+  });
+  
+  // 状态 - 开关操作
+  form.on('switch(demo-templet-status)', function(obj){
+    var id = this.value;
+    var name = this.name;
+    layer.tips(id + ' ' + name + ': '+ obj.elem.checked, obj.othis);
+  });
+});
+</script>
+ -->
+</body>
+</html>

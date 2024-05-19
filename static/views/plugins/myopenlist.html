@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>我的开发列表</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet">
+  <script src="../../res/jquery-3.6.0.min.js"></script>
+  <script src="../../res/layui/layui.js"></script> 
+  <script src="../../res/socket.io.js"></script> 
+  <style>
+    /* 自定义样式  */
+    .layui-table-plugincss .layui-table-header,
+    .layui-table-plugincss thead tr{background-color: #F8FCF9; color: #16BAAA}
+    .layui-form-plugincss > div{margin-bottom: 6px;}
+  </style>
+
+</head>
+<body class="layui-padding-3">
+	<div class="layui-panel layui-border-green" style="width: 80%; margin: 10px auto;">
+	  <div style="padding: 16px;">
+		您可以将您开发好的插件放置到plugins目录下，注册部署后，才会在本页显示<br>
+		完成注册的插件也可以在本页安装，与“添加/卸载插件”是一样的<br><br>
+		<button type="button" class="layui-btn layui-btn-fluid" id="opendir" style="width: 300px;">打开插件目录</button>
+	  </div>
+	</div>	
+
+  <div style="padding: 16px;"> 
+    <table class="layui-hide" id="ID-table-plug-css" lay-filter="ID-plugins"></table>
+  </div>
+  <script type="text/html" id="ID-table-plug-css-user">
+    <ul>
+      <li>{{= d.PlugName }} </li>
+    </ul>
+ </script>
+  <script type="text/html" id="ID-table-plug-css-tool">
+    <div class="layui-form layui-form-plugincss">
+      <div>
+		{{# if(d.isInstalled){ }}
+			<button type="button" class="layui-btn" lay-event="link-plugins">进入插件</button>
+			<button type="button" class="layui-btn layui-bg-orange" lay-event="view-plugins">查看</button>
+		{{# } else { }}
+			<button type="button" class="layui-btn layui-btn-normal" lay-event="setup-plugins">安装插件</button>
+			<button type="button" class="layui-btn layui-bg-orange" lay-event="view-plugins">查看</button>
+			<!-- <button type="button" class="layui-btn layui-bg-red" lay-event="del-plugins">删除</button> -->
+		{{# } }}
+      </div>
+    </div>
+  </script>
+
+<script>
+layui.use(['table', 'layer'], function(){
+  var table = layui.table;
+  var layer = layui.layer;
+    
+    // 创建渲染实例
+    table.render({
+      elem: '#ID-table-plug-css',
+      method: 'POST', // 指定请求方法为POST
+      url:'/reg_plugin', // 指定后端的数据接口
+      contentType: 'application/json', // 设置发送的内容类型为 JSON
+      headers: { 
+        'Content-Type': 'application/json' // 指定请求头
+      },
+      where: {
+        action: 'exp_myplugins_list' // 指定操作为'exp_myplugins_list'
+      },
+      page: true,
+      height: 'full-35',
+      lineStyle: 'height: 80px;', // 定义表格的多行样式
+      css: [ // 直接给当前表格主容器重置 css 样式
+        '.layui-table-page{text-align: center;}' // 让分页栏居中
+      ].join(''),
+      className: 'layui-table-plugincss', // 用于给表格主容器追加 css 类名
+      cols: [[
+        {field:'PlugName', minWidth:160, title: '插件名称', templet: '#ID-table-plug-css-user'},
+        {field:'PlugDir', minWidth:20, title: '所在目录', style:'color: #000;'},
+        {field:'Ver', Width:20, title: '版本', style:'color: #000;'},
+        {field:'PlugDes', Width:300, title: '插件说明', style:'color: #000;'},
+        {field:'CreDate', minWidth:20, title: '创建日期', style:'color: #000;'},
+        {width:300, title: '操作', templet: '#ID-table-plug-css-tool'}
+      ]]
+    });
+
+    // 监听工具条
+    table.on('tool(ID-plugins)', function(obj){
+      var data = obj.data; // 获得当前行数据
+      var layEvent = obj.event; // 获得 lay-event 对应的值
+
+      var plugDirSimple = data.PlugDir.split('\\').pop(); // 使用split和pop来获取最后一个部分
+
+      if(layEvent === 'link-plugins'){ // 用户点击了“进入插件”按钮
+        if(data.PlugHTML){ // 确保字段存在
+          var pluginPath = `/${data.PlugDir}/static/${data.PlugHTML}`;
+          window.location.href = pluginPath; // 在当前iframe中打开插件页面
+        } else {
+          layer.msg('未设置插件页面路径'); // 提示未设置
+        }
+      } else if (layEvent === 'setup-plugins'){ // 用户点击了“安装插件”按钮
+        var setupUrl = `/views/plugins/setup_plugin.html?dir=${encodeURIComponent(data.PlugDir)}&src=open`;
+        window.location.href = setupUrl; // 导航到插件安装页面
+      } else if(layEvent === 'view-plugins'){ // 用户点击了“查看”按钮
+        var viewUrl = `/views/plugins/viewplugin.html?dir=${encodeURIComponent(plugDirSimple)}`;
+        console.log(viewUrl)
+        window.location.href = viewUrl;
+      } else if(layEvent === 'del-plugins'){
+        
+        // 弹出确认框
+        layer.confirm('是否要删除该插件注册信息？', {icon: 3, title:'提示'}, function(index){
+          // 如果用户确认删除
+          $.ajax({
+            type: "POST",
+            url: "/reg_plugin", // 确保这是处理删除请求的正确后端URL
+            contentType: "application/json",
+            data: JSON.stringify({
+              action: "del_reg_plugins", // 后端期待的动作标识
+              plugdir: data.PlugDir // 传递要删除的插件目录名
+            }),
+            success: function(response){
+              if(response.status === 'success'){
+                layer.msg('删除成功');
+                obj.del(); // 从表格中删除对应的行
+              } else {
+                layer.msg('删除失败');
+              }
+            },
+            error: function(){
+              layer.msg('请求失败，请检查网络和服务器配置');
+            }
+          });
+          layer.close(index);
+        });
+      }
+    });
+	
+	$('#opendir').off('click').on('click', function(){
+	$.ajax({
+		type: "POST",
+		url: "/user_plugins",  // 同一个后端路由处理不同的action
+		contentType: "application/json",
+		data: JSON.stringify({action: "open_plugins_dir"}),
+		success: function(response) {
+			console.log(response.message);
+		},
+		error: function(xhr, status, error) {
+			console.error("Error opening directory: " + status + ", " + error);
+		}
+
+	 });
+	});
+
+});
+
+</script>
+
+</body>
+</html>

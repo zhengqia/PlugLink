@@ -1,0 +1,97 @@
+
+<div style="padding: 16px;"> 
+    <table class="layui-hide" id="ID-table-plug-css" lay-filter="ID-plugins"></table>
+</div>
+
+<script>
+layui.use(['table', 'layer'], function(){
+  var table = layui.table;
+  var layer = layui.layer;
+  var WorkFlowName = "{{ WorkFlowName }}"; // 通过Jinja2模板传递的变量
+  var WorkFlowID = "{{ WorkFlowID }}";     // 通过Jinja2模板传递的变量
+
+  table.render({
+    elem: '#ID-table-plug-css',
+    method: 'POST',
+    url: '/workflow', // 后端接口
+    contentType: 'application/json',
+    where: { action: 'load_plugins' }, // 请求参数
+
+    page: true,
+    height: 'full-35',
+    lineStyle: 'height: 60px;', // 定义表格的多行样式
+    css: [ // 直接给当前表格主容器重置 css 样式
+        '.layui-table-page{text-align: center;}' // 让分页栏居中
+    ].join(''),
+    className: 'layui-table-plugincss', // 用于给表格主容器追加 css 类名
+
+    cols: [[
+      {field: 'ID', title: 'PlugID', hide: true}, 
+      {field: 'PlugName', width: 160, title: '插件名称'},
+      {field: 'PlugDir', minWidth: 50, title: '所在目录'},
+      {field: 'Ver', minWidth: 20, title: '版本'},
+      {field: 'PlugDes', minWidth: 300, title: '插件说明'},
+      {width: 200, title: '操作', templet: function(d){
+          // 根据 api 字段的值决定显示按钮还是文本
+          if (d.api) {
+            return `<button type="button" class="layui-btn" lay-event="add_WF">添加到工作流</button>`;
+          } else {
+            return `<span style="color: red;">本插件不支持API</span>`;
+          }
+      }}
+    ]],
+    done: function(res, curr, count){
+      // 这个回调在表格渲染完成后被调用
+      // res 是您从服务器获取的数据
+      // curr 是当前页码
+      // count 是表格中数据条数
+    },
+    parseData: function(res) {
+      // 服务器返回的数据解析函数
+      // 这里可以对数据进行处理，以符合 layui 表格组件的要求
+      return {
+        "code": res.code, // 解析接口状态
+        "msg": res.msg, // 解析提示文本
+        "count": res.data.length, // 解析数据长度
+        "data": res.data // 解析数据列表
+      };
+    }
+  });
+
+  // 为表格绑定事件
+  table.on('tool(ID-plugins)', function(obj){
+  var data = obj.data; // 获得当前行数据
+  var layEvent = obj.event; // 获得 lay-event 对应的值
+
+  if(layEvent === 'add_WF'){
+    layer.confirm('是否确认添加到工作流?', function(index){
+      $.ajax({
+        type: "POST",
+        url: "/workflow",
+        contentType: "application/json",
+        data: JSON.stringify({
+          action: "add_plugtoWF",
+          WorkFlowName: WorkFlowName,
+          WorkFlowID: WorkFlowID,
+          PlugName: data.PlugName,
+          PlugDir: data.PlugDir,
+          PlugDes: data.PlugDes,
+          PlugID: data.ID,
+          Sort: undefined 
+        }),
+        success: function(response) {
+          layer.msg('添加完成');
+        },
+        error: function(xhr, status, error) {
+          layer.msg('添加失败: ' + error);
+        }
+      });
+      layer.close(index);
+    });
+  }
+
+
+
+});
+});
+</script>

@@ -1,0 +1,46 @@
+	
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AI网址大全</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet">
+
+</head>
+
+<script src="../../res/layui/layui.js"></script> 
+<body class="layui-padding-3">
+	
+<div id="aiurlListContent"></div>	
+	
+
+<script>
+	layui.use(['jquery'], function(){
+		var $ = layui.jquery;
+
+		// 页面加载完成后立即执行的函数
+		$(document).ready(function(){
+			$.ajax({
+				type: "POST",
+				url: "/",
+				contentType: "application/json",
+				data: JSON.stringify({ action: "AIURL_list" }),
+				success: function(response){
+					// 这里假设后端直接返回渲染好的HTML
+					$('#aiurlListContent').html(response);
+				},
+				error: function(xhr, status, error){
+					console.error("An error occurred: " + status + " " + error);
+				}
+			});
+		});
+	});
+</script>
+
+
+</body>
+</html>

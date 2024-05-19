@@ -1,0 +1,390 @@
+<div class="layui-card-body">
+
+    <div class="layui-collapse" lay-accordion="" id="workflowCollapse">
+        <!-- 子工作流插件列表将通过 AJAX 请求动态插入这里 -->
+        <!-- 如果数据库为空，将显示提示信息 -->
+        <div class="layui-colla-item" id="noPluginsMessage" style="display:none;">
+            <h2 class="layui-colla-title">暂未添加任何插件</h2>
+            <div class="layui-colla-content layui-show">
+                <p>目前没有可用的插件信息。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+layui.use(['jquery', 'layer','element'], function() {
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    var element = layui.element;
+
+    // 使用 Jinja2 模板语法将变量 workflow_id 传递给 JavaScript
+    var workflow_id = {{ workflow_id | safe }};
+
+    // 向后端发送 AJAX 请求以加载子工作流数据
+    $.ajax({
+      url: '/workflow',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        action: 'CreWF_sub_list_read',
+        id: workflow_id
+      }),
+      success: function(response) {
+        var subWorkflowData = response;
+        var htmlContent = '';
+
+        if (subWorkflowData.length === 0) {
+          $('#noPluginsMessage').show();
+        } else {
+          layui.each(subWorkflowData, function(index, item) {
+            var disableUp = index === 0 ? "layui-btn-disabled" : "";
+            var disableDown = index === subWorkflowData.length - 1 ? "layui-btn-disabled" : "";
+
+            // 根据 conn 字段决定显示哪个图标
+            var connIcon;
+            var connText;
+            if (item.conn === -1) {
+                connIcon =`layui-connIcon-1`;
+                connText = `<div><i class="layui-icon layui-icon-unlink" style="font-size: 20px; color: red;font-weight: normal;"></i><span style="margin-left: 8px; font-size: 14px; color: red;font-weight: normal;">无效脚本</span>`;
+            } else if (item.conn === 1) {
+                connIcon =`layui-connIcon1`;
+                connText = `<div><i class="layui-icon layui-icon-link" style="font-size: 20px; color: #46c671;font-weight: normal;"></i><span style="margin-left: 8px; font-size: 14px; color: #46c671;font-weight: normal;">可用脚本</span>`;
+            } else {
+                connIcon =``;
+                connText = `<div><i class="layui-icon layui-icon-link" style="font-size: 20px; color: gray;;font-weight: normal;"></i><span style="margin-left: 8px; font-size: 14px; color: gray;font-weight: normal;">未测试脚本</span>`;
+            }
+
+            htmlContent += `
+            <div class="layui-colla-item">
+                <h2 class="layui-colla-title flex-container ${connIcon}">
+                    ${connText}<i class="layui-icon layui-icon-triangle-r"></i>ID:${item.ID} ${item.PlugName} | 第${item.Sort}执行序 </div>
+                  <div>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-red" id="btn_code_sub_WF" data-item-id="${item.ID}">
+                        <i class="layui-icon layui-icon-fonts-code"></i>
+                    </button>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-primary btn_plugapp" id="btn_plugapp" data-json-id="${item.ID}" data-item-id="${item.PlugID}" data-item-dir="${item.PlugDir}">
+                        <i class="layui-icon layui-icon-edit"></i>
+                    </button>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="del_sub_WF" data-item-id="${item.ID}">
+                        <i class="layui-icon layui-icon-delete"></i>
+                    </button>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal ${disableUp}" id="up_sub_WF" data-item-id="${item.ID}">
+                        <i class="layui-icon layui-icon-up"></i>
+                    </button>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-warm ${disableDown}" id="down_sub_WF" data-item-id="${item.ID}">
+                        <i class="layui-icon layui-icon-down"></i>
+                    </button>
+                  </div>
+                </h2>
+                <div class="layui-colla-content">
+                  <p>${item.PlugDes}</p>
+                </div>
+              </div>
+            `;
+            // 不为最后一个数据项添加图标
+            // if (index < subWorkflowData.length - 1) {
+            //   htmlContent += `<div><i class="layui-icon layui-icon-link down-icon-sub_WF"></i><span class="down-text-sub_WF">连接</span></div>`;
+            // }
+          });
+
+          $('#workflowCollapse').html(htmlContent);
+          element.render('collapse', 'workflowCollapse'); // 重新渲染折叠组件
+
+                // 在重新渲染后添加事件监听
+                element.on('tab(tabFilter)', function(data) {
+                    console.log('Tab change detected: ', data.index);
+                });
+
+        }
+      },
+      error: function(xhr, status, error) {
+        layer.msg('获取子工作流数据失败');
+      }
+    });
+
+    // 删除事件处理
+    $('#workflowCollapse').on('click', 'button[id^="del_sub_WF"]', function(event){
+        var itemId = $(this).data('item-id');
+        layer.confirm('确定要删除这个插件吗？', {title: '操作确认', btn: ['确定', '取消']}, function(index){
+            $.ajax({
+                url: '/workflow',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ action: 'del_sub_WF', id: itemId }),
+                cache: false,
+                success: function(response){
+                    layer.close(index);
+                    if(response.status === 'success'){
+                        layer.msg(response.message, {icon: 1});
+                        location.reload();
+                    } else {
+                        layer.msg(response.message, {icon: 2});
+                    }
+                },
+                error: function(xhr, status, error){
+                    layer.msg('请求出错', {icon: 2});
+                }
+            });
+            layer.close(index);
+        });
+    });
+
+    // 排序事件处理
+    $('#workflowCollapse').on('click', 'button[id^="up_sub_WF"], button[id^="down_sub_WF"]', function(event){
+        if ($(this).hasClass('layui-btn-disabled')) {
+            layer.msg('已经在最前或最后，无法移动');
+            return;
+        }
+
+        var itemId = $(this).data('item-id');
+        var moveAction = $(this).attr('id').startsWith('up') ? 'up_sub_WF' : 'down_sub_WF';
+        var confirmText = '调整排序可能会导致工作流失效，您确定这么做吗？';
+
+        layer.confirm(confirmText, {title: '操作确认', btn: ['确定', '取消']}, function(index){
+            $.ajax({
+                url: '/workflow',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    action: moveAction,
+                    id: itemId
+                }),
+                success: function(response){
+                    if(response.status === 'success'){
+                        layer.msg('排序更新成功', {icon: 1});
+                        location.reload();
+                    } else {
+                        layer.msg('排序更新失败', {icon: 2});
+                    }
+                },
+                error: function(xhr, status, error){
+                    layer.msg('请求出错', {icon: 2});
+                }
+            });
+            layer.close(index);
+        });
+      });
+
+    // 事件
+    $('#workflowCollapse').on('click', 'button[id^="btn_plugapp"]', function(event) {
+        event.preventDefault();  // 取消默认事件
+        event.stopPropagation();  // 阻止事件冒泡
+        
+        var itemId = $(this).data('item-id');
+        var dir = $(this).data('item-dir');
+        var id = $(this).data('json-id');
+
+        $.ajax({
+            url: '/workflow',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                action: 'cfg_plugin_WF',
+                PlugDir: dir
+            }),
+            success: function(response) {
+                console.log('Received response:', response);
+                console.log('Received response PlusHTML:', response.PlugHTML);
+                if (response.exists && response.PlugHTML) {
+                  $("#plugapp").data('PlugHTML', response.PlugHTML);
+                  $('.layui-tab').data('current-dir', dir);
+                    layer.open({
+                        type: 1,
+                        area: ['1200px', '600px'],
+                        title: '插件配置',
+                        content: `
+                        <div class="layui-tab layui-tab-brief" lay-filter="tabFilter">
+                          <ul class="layui-tab-title">
+                            <li class="layui-this">可视化操作页</li>
+                            <li>JSON页</li>
+                            <button type="button" id="btnsavejson" class="layui-btn layui-btn-warm layui-btn-radius" style="width: 180px;height: 40px;">保存此配置到工作流</button>
+                            <button type="button" id="openPluginPage" class="layui-btn layui-btn-normal layui-btn-radius" style="width: 180px;height: 40px;">打开插件页面</button>
+                          </ul>
+                          <div class="layui-tab-content">
+                            <div class="layui-tab-item layui-show">
+                              <div class="layui-panel layui-border-red" style="width: 80%; margin: 10px auto;">
+                                <div style="padding: 16px;">
+                                  不要运行页面内容，仅操作保存即可<br>
+                                  注意工作流上下文相关联，否则是无法完成整个运作的<br>
+                                  本页是模拟加载插件页面，若无法正常运行，请点击上方“打开插件页面”按钮在另外的窗口中配置后，再点击“保存此配置到工作流”即可<br>
+                                </div>
+                              </div>	
+
+                              <div id="plugapp"></div>
+                            </div>
+
+                            <div class="layui-tab-item">
+                              <div class="layui-panel layui-border-red" style="width: 80%; margin: 10px auto;">
+                                <div style="padding: 16px;">
+                                  所有插件运行前都会调用api.json<br>
+                                  如果插件作者没按要求配置api入口，则该插件不能加入工作流<br>
+                                  如果不是上述原因而无法加载json文件，那是因为还未生成，您需要在操作页执行保存，json格式的文件就会生成，若懂该插件格式，你也可以在此编辑<br>
+                                  若因误操作出错，重新到可视化操作页保存即可
+                                </div>
+                              </div>	
+                              <div id="plugjson"></div>
+                            </div>
+
+                          </div>
+                        </div>
+                        `,
+                        maxmin: true, 
+
+
+                        end: function() {
+                        // 弹出层关闭时，自动刷新页面
+                        location.reload();
+                      }
+                    });
+                    $('#openPluginPage').on('click', function() {
+                        window.open('/plugins/' + dir + '/static/' + response.PlugHTML, '_blank');
+                        $('#plugapp').html('请在新窗口中修改后保存即可').css({
+                            'text-align': 'center',  /* 水平居中文本 */
+                            'font-size': '24px',     /* 设置字体大小为24像素 */
+                            'margin': '20px 0'       /* 上下边距 */
+                        }).show();
+
+                    });    
+
+                    $("#plugapp").load('/plugins/' + dir + '/static/' + response.PlugHTML);
+                    $('.layui-tab').data('current-dir', dir); // 存储dir
+                    $('.layui-tab').data('json-id', id); // 存储itemId
+                    // 调用AJAX方法加载Jinja2渲染的HTML
+                    $.ajax({
+                        url: '/workflow',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            action: 'CreWF_plugjson',
+                            dir: dir
+                        }),
+                        success: function(response) {
+                            $('#plugjson').html(response);  // 将返回的 HTML 内容加载到 div 中
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Ajax error:', error);
+                            layer.msg('请求出错');
+                        }
+                    });
+
+                  } else {
+                    layer.msg('找不到插件，可能是已经被卸载，如若要使用，请重新安装。');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Ajax error:', error);
+                layer.msg('请求出错');
+            }
+        });
+   
+});
+
+$(document).on('click', '#btnsavejson', function(event) {
+// 给“保存此配置到工作流”按钮添加点击事件
+
+    event.preventDefault();  // 阻止默认事件
+
+    var itemId = $('.layui-tab').data('json-id'); // 获取存储的itemId
+    var dir = $('.layui-tab').data('current-dir'); // 获取存储的dir
+
+    console.log('itemId:', itemId);
+    console.log('dir:', dir);
+    if (!itemId || !dir) {
+        layer.msg('无法获取插件ID或目录信息，请检查数据设置。', {icon: 2});
+        return;
+    }
+
+
+    layer.confirm('是否保存当前配置到工作流模块？', {title: '保存确认', btn: ['确定', '取消']}, function(index) {
+        $.ajax({
+            url: '/workflow',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                action: 'save_json',
+                id: itemId,
+                dir: dir
+            }),
+            success: function(response) {
+                if (response.status === 'success') {
+                    layer.msg('配置保存成功', {icon: 1});
+                    location.reload();
+                } else {
+                    layer.msg('配置保存失败: ' + response.message, {icon: 2});
+                }
+            },
+            error: function(xhr, status, error) {
+                layer.msg('请求出错: ' + error, {icon: 2});
+            }
+        });
+        layer.close(index);
+    });
+});
+
+// 此代码无法触发，找不到原因
+// layui.use(['element'], function(){
+//   var element = layui.element;
+//   // 监听选项卡的切换
+//   element.on('tab(tabFilter)', function(data){
+//       // 检查选中的选项卡是否是 "JSON页"
+//       console.log(this); // 当前 tab 标题所在的原始 DOM 元素
+//       console.log(data.index); // 得到当前 tab 项的所在下标
+//       console.log(data.elem); // 得到当前的 tab 容器
+
+//       if(data.index === 1) { // 这里的 1 应该与 JSON 页的索引对应
+//           $.ajax({
+//               url: '/workflow',
+//               type: 'POST',
+//               contentType: 'application/json',
+//               data: JSON.stringify({
+//                   action: 'CreWF_plugjson',
+//                   dir: dir // 确保 dir 是此作用域中可访问的
+//               }),
+//               success: function(response) {
+//                   $('#plugjson').html(response);  // 将返回的 HTML 内容加载到 div 中
+//               },
+//               error: function(xhr, status, error) {
+//                   console.error('Ajax error:', error);
+//                   layer.msg('请求出错');
+//               }
+//           });
+//       }
+//   });
+// });
+
+$('#workflowCollapse').on('click', 'button[id^="btn_code_sub_WF"]', function() {
+        var itemId = $(this).data('item-id'); // 获取按钮数据属性中的 item-id
+
+        // 发送 AJAX 请求获取后端渲染的 HTML
+        $.ajax({
+            url: '/workflow',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                action: 'code_sub_WF',
+                id: itemId
+            }),
+            success: function(response) {
+                // 使用 layer 弹窗展示返回的 HTML
+                layer.open({
+                    type: 1,  // 类型为页面层
+                    area: ['1100px', '600px'],  // 定义弹窗大小
+                    title: '工作流执行插件脚本：json代码视图',  // 弹窗标题
+                    content: response,  // 后端返回的页面内容
+                    maxmin: true,
+                    end: function() {
+                    // 弹出层关闭时，自动刷新页面
+                    location.reload();
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                layer.msg('加载失败: ' + error, {icon: 2});  // 出错时的提示
+            }
+        });
+    });
+
+});
+
+</script>

@@ -1,0 +1,115 @@
+<div style="padding: 16px;">
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+                <form class="layui-form" action="" lay-filter="component-form-group">
+                    <fieldset class="layui-elem-field custom-fieldset">
+                        <blockquote class="layui-elem-quote custom-legend">
+                            JSON编辑台 - 工作流插件脚本
+                        </blockquote>
+                    <textarea name="jsontext_data" id="jsontext_data" placeholder="该工作流还未配置json脚本，工作流将无法正常执行" class="layui-textarea" 
+                    style="background-color: #000000; color: #FFFFFF; font-size: 16px; width: 1000px; height: 300px;"></textarea>
+                    <div class="layui-panel">
+                        <div style="padding: 16px;">
+                            <button type="button" class="layui-btn layui-btn-warm layui-btn-radius" id="btn_saveJson_data" style="width: 100px;height: 40px;">保存</button>
+                            <button type="button" class="layui-btn layui-btn-normal layui-btn-radius" id="btn_loadJson_data" style="width: 100px;height: 40px;">重置</button>
+                            <button type="button" class="layui-btn layui-btn-primary layui-btn-radius" id="btn_closeJson_data" style="width: 100px;height: 40px;">关闭</button>
+                        </div>
+                      </div>
+                    </div>
+
+
+                </form>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['jquery', 'form', 'layer'], function() {
+        var $ = layui.jquery;
+        var form = layui.form;
+        var layer = layui.layer;
+    
+        // 页面加载完毕后自动执行
+        $(document).ready(function() {
+            loadJsonData();
+        });
+    
+        function loadJsonData() {
+            var workflowId = "{{ workflow_id }}";  // 确保 workflow_id 是通过 Jinja2 传入的
+            console.log('Loading JSON data for ID:', workflowId);
+
+            $.ajax({
+                url: '/workflow',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    action: 'code_sub_WF_loaddatajson',
+                    id: workflowId
+                }),
+                success: function(response) {
+                    console.log('Data received:', response);
+                    if (response.status === 'success') {
+                        $('#jsontext_data').val(response.JSON);  // 使用后端返回的格式化的 JSON 字符串
+                    } else {
+                        layer.msg('找不到数据: ' + response.message, {icon: 2});
+                    }
+                },
+                error: function(xhr, status, error) {
+                    layer.msg('加载 JSON 数据失败: ' + error, {icon: 2});
+                }
+            });
+        }
+
+        // 保存按钮事件处理
+        $('#btn_saveJson_data').on('click', function() {
+            var jsonData = $('#jsontext_data').val();
+            var workflowId = {{ workflow_id | tojson }};
+
+            try {
+                // 尝试解析 JSON 来验证格式
+                JSON.parse(jsonData);
+            } catch (e) {
+                // 检查是否是因为科学计数法格式错误
+                if (e.message.includes("Exponent part is missing a number")) {
+                    layer.alert('科学计数法格式错误，请确保数字正确。错误详情: ' + e.message);
+                } else {
+                    layer.alert('JSON 格式错误: ' + e.message); // 展示其他 JSON 格式错误
+                }
+                return; // 停止执行
+            }
+
+
+            $.ajax({
+                url: '/workflow',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    action: 'code_sub_WF_savedatajson',
+                    id: workflowId,
+                    jsonData: jsonData
+                }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        layer.msg('保存成功', {icon: 1});
+                    } else {
+                        layer.msg('保存失败: ' + response.message, {icon: 2});
+                    }
+                },
+                error: function(xhr, status, error) {
+                    layer.msg('保存失败: ' + error, {icon: 2});
+                }
+            });
+        });
+    
+        // 重置按钮事件处理
+        $('#btn_loadJson_data').on('click', function() {
+            loadJsonData();  // 重新加载 JSON 数据
+            layer.msg('重置成功', {icon: 1})
+        });
+    
+        // 取消按钮事件处理
+        $('#btn_closeJson_data').on('click', function() {
+            layer.closeAll();  // 关闭当前层
+        });
+    });
+    </script>
+    

@@ -1,0 +1,111 @@
+<div style="padding: 32px;">
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-container">
+                <form class="layui-form" action="" lay-filter="component-form-group">
+                    <div class="layui-row">
+
+						<fieldset class="layui-elem-field custom-fieldset">
+							<blockquote class="layui-elem-quote custom-legend">
+							  JSON编辑台 - 加载 plugins/{{ dir }}/api.json<button type="button" class="layui-btn layui-bg-blue" id="reJson">重新加载文件</button>
+							</blockquote>
+
+                            <textarea name="jsontext" id="jsontext" placeholder="无法加载json，插件可能还没有创建api.json" class="layui-textarea" 
+                            style="background-color: #000000; color: #FFFFFF; font-size: 16px; width: 1000px; height: 300px;"></textarea>
+                            <div><button type="button" class="layui-btn layui-bg-orange" id="saveJson">保存</button></div>
+                          </div>
+
+
+
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    
+<script>
+    layui.use(['jquery', 'layer'], function() {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var dir = "{{ dir }}";  // 从 Jinja2 获取 dir 变量
+
+        // $.ajax({
+        //     url: '/workflow',
+        //     type: 'POST',
+        //     contentType: 'application/json',
+        //     data: JSON.stringify({ action: 'load_plugjson', dir: dir }),
+        //     success: function(response) {
+        //         $('#jsontext').val(JSON.stringify(response, null, 4));  // 格式化 JSON 输出
+        //     },
+        //     error: function() {
+        //         // 如果失败，保持 placeholder 提示
+        //         //layer.msg('无法加载 JSON 数据');
+        //     }
+        // });
+        function loadJsonData() {
+            $.ajax({
+                url: '/workflow',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ action: 'load_plugjson', dir: dir }),
+                success: function(response) {
+                    $('#jsontext').val(JSON.stringify(response, null, 4));  // 格式化 JSON 输出
+                },
+                error: function() {
+                    $('#jsontext').attr('placeholder', '无法加载json，插件可能还没有创建api.json');
+                }
+            });
+        }
+
+        // 页面加载时自动调用函数加载 JSON 数据
+        loadJsonData();
+
+        // 绑定重新加载文件按钮的点击事件
+        $('#reJson').click(function() {
+            loadJsonData();  // 调用函数重新加载 JSON 数据
+            layer.msg('加载成功')
+        });
+
+        // 保存按钮的点击事件
+        $('#saveJson').click(function() {
+            var jsonData = $('#jsontext').val();
+            try {
+                // 尝试解析 JSON 来验证格式
+                JSON.parse(jsonData);
+            } catch (e) {
+                // 检查是否是因为科学计数法格式错误
+                if (e.message.includes("Exponent part is missing a number")) {
+                    layer.alert('科学计数法格式错误，请确保数字正确。错误详情: ' + e.message);
+                } else {
+                    layer.alert('JSON 格式错误: ' + e.message); // 展示其他 JSON 格式错误
+                }
+                return; // 停止执行
+            }
+            // 发送 AJAX 请求
+            $.ajax({
+                url: '/workflow',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ action: 'save_plugjson', dir: dir, jsonContent: jsonData }),
+                success: function(response) {
+                    layer.alert('保存成功', {icon: 1, title: '操作结果'}, function(index) {
+                        location.reload();
+                        layer.close(index); // 关闭弹出层
+                    });
+                },
+                error: function(xhr) {
+                    // 增加错误反馈
+                    var errorMsg = '保存失败';
+                    if (xhr.responseText) {
+                        errorMsg += ': ' + xhr.responseText;
+                    }
+                    layer.msg(errorMsg);
+                }
+            });
+        });
+});
+
+</script>
+    

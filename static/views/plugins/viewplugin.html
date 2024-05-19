@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>查看</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet">
+  <script src="../../res/jquery-3.6.0.min.js"></script>
+
+</head>
+<script src="../../res/layui/layui.js"></script> 
+<script src="../../res/socket.io.js"></script> 
+<body class="layui-padding-3">
+<style>
+.custom-quote {
+    vertical-align: top; /* 垂直对齐方式设为顶部对齐 */
+}
+
+.custom-fieldset {
+    width: 700px; /* 设置fieldset的宽度 */
+    background-color: #eeeeee; /* 设置背景色 */
+	border: 1px solid #16baaa; /* 设置边框 */
+}
+.custom-legend {
+    color: 16baaa; /* 设置标题字体颜色 */
+    font-size: 20px; /* 设置标题字体大小 */
+    font-weight: bold; /* 设置标题字体粗细 */
+
+}
+.submit-button {
+    width: 300px; /* 设置提交按钮的宽度 */
+}
+
+
+body {
+    background-color: #2f363c; /* 设置背景色 */
+}
+</style>
+<div style="padding: 32px;">
+<div class="layui-fluid">
+	<div class="layui-row layui-col-space15">
+		<div class="layui-container">
+			<form class="layui-form" action="">
+				<div class="layui-row">
+					<div class="layui-col-md-offset2 layui-col-md-6">
+						
+						
+						<fieldset class="layui-elem-field custom-fieldset">
+						<blockquote class="layui-elem-quote custom-legend">
+							查看我的开发插件：<span id="pluginName1">XXXX</span>
+						</blockquote>
+							
+						<div class="layui-panel layui-border-green" style="width: 80%; margin: 10px auto;">
+						  <div style="padding: 16px;">
+							这里不可修改，只可查阅或删除！<br>
+							删除时不会影响您的文件，仅删除数据库，如果要重新启用请重新部署；<br>
+							可以将您注册后的插件打包导出为zip，供他人安装。<br>
+              （注意：会打包整个目录文件，因此打包前要清除临时文件）<br>  
+							<br>
+						  <button type="button" class="layui-btn layui-btn-radius" id="backButton" onclick="goBack()">返回</button>
+						  <button type="button" class="layui-btn layui-btn-radius layui-bg-blue" lay-event="zip-plugins">导出</button>
+						  </div>
+						</div>	
+						<br>
+						
+						
+						<div class="layui-panel layui-border-green" style="width: 80%; margin: 10px auto;">
+							<fieldset class="layui-field-title">
+							  <legend class="layui-border-green">插件目录</legend>			
+							</fieldset>									
+							<div style="padding: 16px;line-height: 2.5;">
+								插件目录名称:<span id="pluginDir">XXXX</span><br>
+
+								<fieldset class="layui-field-title">
+								  <legend class="layui-border-green">基本信息设置</legend>          
+								</fieldset>  
+								插件名称:<span id="pluginName2">XXXX</span><br>
+								插件版本号:<span id="pluginVersion">XXXX</span><br>
+								插件图标:<span id="pluginIcon">XXXX</span><br>
+								HTML主页:<span id="pluginHomepage">XXXX</span><br>
+								<hr>
+								插件描述:<br>
+								<span id="pluginDescription">XXXX</span><br>
+								<hr>  
+
+								版本说明:<br>
+								<span id="versionInfo">XXXX</span><br>
+								<hr> 
+
+								插件说明链接:<span id="pluginDocLink">XXX</span><br>
+								升级链接:<span id="updateLink">XXX</span><br>
+								临时文件夹:<span id="uploadDir">XXX</span><br>
+
+								<hr>
+								API信息:<br>
+								<span id="apiInfo">XXXX</span><br>
+
+								<fieldset class="layui-field-title">
+								  <legend class="layui-border-green">开发者信息</legend>          
+								</fieldset>
+								作者:<span id="author">XXX</span><br>
+								公司名:<span id="companyName">XXX</span><br>
+								公司网址:<span id="companyWebsite">XXX</span><br>
+								密钥:<span id="Keypass">XXX</span><br>
+								<br>
+
+								<button type="button" class="layui-btn layui-bg-red" lay-event="del-plugins">删除</button>
+						  	</div>
+						</div>	
+					
+							
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>
+
+</body>
+</html>
+
+
+<script>
+// 定义一个函数，用于返回上一级网页
+function goBack() {
+  history.back(); // 调用history对象的back方法返回上一级网页
+}
+</script>
+
+<script>
+layui.use(['jquery'], function(){
+  var $ = layui.jquery;
+
+  // 解析URL查询参数
+  function getQueryParam(name) {
+    var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results == null) {
+       return null;
+    }
+    return decodeURI(results[1]) || 0;
+  }
+
+	// 更新页面内容
+	function updatePageContent(pluginData) {
+	  $('#pluginDir').text(pluginData.PlugDir);
+	  $('#pluginName1').text(pluginData.PlugName); // 更新对应 ID 的元素
+	  $('#pluginName2').text(pluginData.PlugName); // 更新另一个对应 ID 的元素
+	  $('#pluginVersion').text(pluginData.Ver);
+	  $('#pluginIcon').text(pluginData.ICO); 
+	  $('#pluginHomepage').text(pluginData.PlugHTML);
+	  $('#pluginDescription').text(pluginData.PlugDes);
+	  $('#versionInfo').text(pluginData.VerDes); 
+	  $('#pluginDocLink').text(pluginData.help); 
+	  $('#updateLink').text(pluginData.uplink);
+	  $('#apiInfo').text(pluginData.APIDes); 
+	  $('#author').text(pluginData.author);
+	  $('#companyName').text(pluginData.comname);
+	  $('#companyWebsite').text(pluginData.website);
+	  $('#uploadDir').text(pluginData.uploadDir);
+	  $('#Keypass').text(pluginData.Keypass);
+	}
+
+
+  $(document).ready(function(){
+    var plugdir = getQueryParam('dir'); 
+    if(plugdir) {
+      // 发送请求到后端获取插件数据
+      $.ajax({
+        type: "POST",
+        url: "/reg_plugin", // 确保这是正确的URL
+        contentType: "application/json",
+        data: JSON.stringify({
+          action: "read_reg_plugins", // 后端期待的动作标识
+          plugdir: plugdir 
+        }),
+        success: function(response) {
+          // 请求成功，使用返回的数据更新页面
+          updatePageContent(response);
+        },
+        error: function() {
+          console.log('请求失败');
+        }
+      });
+    }
+  });
+});
+</script>
+
+<script>
+// 添加getQueryParam函数定义
+function getQueryParam(name) {
+    var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results == null) {
+       return null;
+    }
+    return decodeURI(results[1]) || 0;
+}
+
+$(document).ready(function() {
+    var $ = layui.jquery;
+    var layer = layui.layer;
+	
+// 删除插件
+$('button[lay-event="del-plugins"]').on('click', function() {
+    var plugdir = getQueryParam('dir');
+    // 显示确认对话框
+    layer.confirm('是否要删除插件注册信息？(如何插件不是您开发的，将可能导致再无法安装)', {icon: 3, title:'提示'}, function(index) {
+        $.ajax({
+            type: "POST",
+            url: "/reg_plugin",
+            contentType: "application/json",
+            data: JSON.stringify({
+                action: "del_reg_plugins",
+                plugdir: plugdir
+            }),
+            success: function(response) {
+                if(response.status === 'success') {
+                    layer.msg('删除成功', {icon: 1, time: 1000}, function() {
+                        history.back(); // 返回上一页
+						//window.location.href = 'myopenlist.html';
+                    });
+                } else {
+                    layer.msg(response.message); // 显示后端返回的错误消息
+                }
+            },
+            error: function() {
+                layer.msg('请求失败，请检查网络和服务器配置');
+            }
+        });
+        layer.close(index);
+    });
+});
+	
+    // 绑定打包按钮的点击事件
+    $('button[lay-event="zip-plugins"]').on('click', function() {
+		var plugdir = getQueryParam('dir');
+      $.ajax({
+        type: "POST",
+        url: "/reg_plugin", // 确保这是后端接收请求的正确URL
+        contentType: "application/json",
+        data: JSON.stringify({
+          action: "zip_plugins",
+          plugdir: plugdir
+        }),
+        xhrFields: {
+          responseType: 'blob' // 重要：设置响应类型为blob，以便处理文件下载
+        },
+        success: function(blob, status, xhr) {
+          // 从响应头中获取文件名
+          var filename = xhr.getResponseHeader("Content-Disposition").match(/filename=(.*)/)[1];
+          // 创建一个下载链接并点击它
+          var link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        },
+        error: function() {
+          console.log('请求失败');
+        }
+      });
+    });
+
+	
+	
+});
+	
+	
+	
+</script>
+
+
+

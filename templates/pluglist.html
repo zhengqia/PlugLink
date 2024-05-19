@@ -1,0 +1,101 @@
+{% if plugins %}
+{% for plugin in plugins %}
+<div class="layui-col-md4 layui-col-sm6">
+    <div class="layadmin-contact-box">
+        <div class="layui-col-md4 layui-col-sm6">
+            <a href="javascript:;" onclick="goToPluginDir('{{ plugin.PlugDir }}', '{{ plugin.PlugHTML }}')">
+                <div class="layadmin-text-center">
+					<img src="{{ url_for('serve_plugins', filename=plugin.ICO) }}" id="img_{{ plugin.id }}">
+                    <div class="layadmin-maillist-img layadmin-font-blod">{{ plugin.PlugName }}</div>
+                </div>
+            </a>
+        </div>
+        <div class="layui-col-md8 layadmin-padding-left20 layui-col-sm6">
+                <h3 class="layadmin-title">
+                    <strong>版本：{{ plugin.Ver }}</strong>
+                </h3>
+                <p class="layadmin-textimg">
+                    <i class="layui-icon layui-icon-component"></i>
+                    {{ plugin.PlugDir }}
+                </p>
+            <div class="layadmin-address">
+                {{ plugin.PlugDes|truncate(50, true, '...') }}
+                <div>
+					<button class="layui-btn layui-btn-primary layui-border-blue" onclick="handleClick('{{ plugin.PlugDir }}')">查看信息</button>
+
+				<button type="button" class="layui-btn" onclick="goToPluginDir('{{ plugin.PlugDir }}', '{{ plugin.PlugHTML }}')">立即使用</button>
+                
+                    <button type="button" class="layui-btn add-plugin-button" 
+                    data-plugin-id="{{ plugin.id }}"
+                    data-plugin-dir="{{ plugin.PlugDir }}"
+                    data-plugin-html="{{ plugin.PlugHTML }}">
+                    <i class="layui-icon layui-icon-star-fill"></i>
+                  </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+    <div style="text-align: center; padding: 20px;">
+        暂未安装任何插件
+    </div>
+{% endif %}
+
+<script type="text/javascript">
+    function goToPluginDir(plugDir, plugHTML) {
+        // 使用模板字符串构建完整的路径
+        const fullPath = `/plugins/${plugDir}/static/${plugHTML}`;
+        //window.location.href = fullPath;  // 动态设置路径
+        window.open(fullPath, '_blank');
+    }
+</script>
+    
+<script>
+function handleClick(dir) {
+    var basePath = "plugins/";  // 基本路径，不对斜杠进行编码
+    var encodedDir = encodeURIComponent(dir);  // 仅对dir部分进行编码
+    var fullPath = basePath + encodedDir;  // 拼接完整路径
+    console.log(fullPath)
+    location.href = '/views/plugins/viewplugin.html?dir=' + encodedDir;  // 使用完整路径进行跳转
+}
+</script>
+
+<script type="text/javascript">
+layui.use(['jquery', 'layer'], function(){
+    var $ = layui.jquery;
+    var layer = layui.layer;
+
+    $('.add-plugin-button').on('click', function() {
+        var pluginId = $(this).data('plugin-id');
+        var plugDir = $(this).data('plugin-dir');
+        var plugHTML = $(this).data('plugin-html');
+        console.log('Before parsing pluginId:', pluginId); // 确认完整的 JSON 字符串
+
+        addPlugin(pluginId, plugDir, plugHTML);
+    });
+
+    function addPlugin(pluginId, plugDir, plugHTML) {
+        var pluginURL = `/plugins/${plugDir}/static/${plugHTML}`;
+        $.ajax({
+            url: '/',  // 请根据实际情况修改URL
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                action: "add_plugin",
+                plugin_id: pluginId,
+                plug_url: pluginURL
+            }),
+            success: function(response) {
+                layer.msg(response.message);  // 使用layui的layer模块来显示消息
+            },
+            error: function() {
+                layer.msg('请求失败，请重试');
+            }
+        });
+    }
+});
+</script>
+

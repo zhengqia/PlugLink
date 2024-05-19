@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>工作流创建</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet"  media="all">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet"  media="all">
+  <script src="../../res/jquery-3.6.0.min.js"></script>
+  <script src="../../res/layui/layui.js"></script> 
+  <script src="../../res/socket.io.js"></script> 
+
+</head>
+
+<style>
+.custom-fieldset {
+    width: 1000px; /* 设置fieldset的宽度 */
+	border: 1px solid #eeeeee; /* 设置边框 */
+}
+.custom-legend {
+    color: 16baaa; /* 设置标题字体颜色 */
+    font-size: 20px; /* 设置标题字体大小 */
+    font-weight: bold; /* 设置标题字体粗细 */
+
+}
+	
+.button-container {
+    text-align: center; /* 设置按钮容器的文本对齐方式为右对齐 */
+
+}
+	
+.layui-submit {
+	font-size: 20px; /* 设置字体大小为 20 像素 */
+}
+
+.custom-fieldset {
+  background-color: white; /* 设置白色背景 */
+  /* 其他样式可以根据需要添加 */
+  padding: 10px; /* 举例：添加一些内边距 */
+  border: 1px solid #ccc; /* 举例：添加边框，颜色可以根据需要调整 */
+  margin-bottom: 10px; /* 举例：添加外边距，以便和其他元素分隔开 */
+}
+
+.flex-container {
+    display: flex;
+    justify-content: space-between; /* 确保内容分布在两端 */
+    align-items: center; /* 垂直居中对齐 */
+    font-size: 14px; 
+}
+
+.down-icon-sub_WF {
+    font-size: 30px;  /* 增大图标大小，根据需要调整 */
+    text-align: center;  /* 水平居中 */
+    display: flex;       /* 使用 Flexbox */
+    justify-content: center; /* Flexbox 水平居中 */
+    align-items: center; /* Flexbox 垂直居中 */
+    height: 1px;       /* 指定高度，根据需要调整 */
+    color: #46c671;
+    position: relative; /* 或者使用 absolute 根据实际情况 */
+    z-index: 1000;      /* 足够高以确保在最顶层 */
+    margin-right: 50px;
+
+}
+.down-text-sub_WF {
+    font-size: 10px;  /* 增大图标大小，根据需要调整 */
+    text-align: right;  /* 水平居中 */
+    display: flex;       /* 使用 Flexbox */
+    justify-content: center; /* Flexbox 水平居中 */
+    align-items: center; /* Flexbox 垂直居中 */
+    height: 1px;       /* 指定高度，根据需要调整 */
+    color: #46c671;
+    position: relative; /* 或者使用 absolute 根据实际情况 */
+    z-index: 1000;      /* 足够高以确保在最顶层 */
+}
+
+.jsontext {
+   color: #FFFFFF;
+   background-color:black
+}
+
+.layui-connIcon1 {
+    background-color: #f2fbeb; 
+
+}
+
+.layui-connIcon-1 {
+    background-color: #fbebeb; 
+
+}
+</style>
+<body class="layui-padding-3">
+<div style="padding: 32px;">
+<div class="layui-fluid">
+	<div class="layui-row layui-col-space15">
+		<div class="layui-container">
+			<form class="layui-form" action="" lay-filter="component-form-group">
+				<div class="layui-row">
+
+
+
+
+            <fieldset class="layui-elem-field custom-fieldset">
+
+              <!-- <div class="layui-collapse">
+                <div class="layui-colla-item">
+                  <div class="layui-colla-title flex-container">点击这里查看使用说明</div>
+                  <div class="layui-colla-content">
+                    <p>Content 1</p>
+                  </div>
+                </div>
+              </div> -->
+
+              <blockquote class="layui-elem-quote custom-legend">
+                <button type="button" class="layui-btn" onclick="goToPage()">
+                  <i class="layui-icon layui-icon-left">回首页</i>
+                </button>
+                当前工作流：<span id="WorkFlowName"></span>（ID:<span id="WorkFlowID"></span>）（任务数:<span id="taskCount"></span>）
+                <!-- <button type="button" class="layui-btn layui-bg-purple" id="btn_running" style="width: 200px;height: 50px;font-size: 20px;">运行这个工作流</button> -->
+              </blockquote>
+            <div>
+              <div class="layui-card-header">
+                <button type="button" class="layui-btn layui-btn-radius" id="btn_pluglist" lay-on="btn_pluglist">添加插件到工作流</button>
+                <button type="button" class="layui-btn layui-btn-normal layui-btn-radius" id="btn_testwf">测试工作流</button>
+                <button type="button" class="layui-btn layui-btn-danger layui-btn-radius" id="btn_del_WF" style="float: right;">删除这个工作流</button>
+              </div>
+              <div><br></div>
+
+              <div id="CreWF_sub_list"></div>
+
+            </div>
+
+           </fieldset>  
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>
+						
+</body>
+</html>
+<script>
+layui.use(['jquery', 'layer', 'util', 'form'], function(){
+  var $ = layui.jquery; // 使用layui.jquery显式加载jQuery模块
+  var layer = layui.layer; // 加载layer模块
+  var util = layui.util; // 加载util模块
+  var form = layui.form; // 加载form模块
+
+    // 从URL中获取参数
+    function getQueryParam(name) {
+    var regex = new RegExp('[?&]' + name + '=([^&#]*)');
+    var results = regex.exec(window.location.search);
+    return results === null ? null : decodeURIComponent(results[1]);
+    }
+    // 事件
+    util.on('lay-on', {
+      'btn_pluglist': function(){
+        layer.open({
+          type: 1,
+          area: ['1200px', '500px'], // 宽高
+          title: '插件搜索',
+          content: '<div id="plugins"></div>',
+          end: function(){
+          // 当弹出层关闭时，刷新当前页面
+          location.reload();
+        }
+
+        });
+      },
+    });
+
+    // 绑定按钮点击事件-添加插件到工作流
+    $('#btn_pluglist').click(function(){
+        // 获取工作流名称和ID
+        var WorkFlowName = $('#WorkFlowName').text();
+        var WorkFlowID = $('#WorkFlowID').text();
+
+        var index = layer.load(1); // 显示加载动画
+
+        // 发起POST请求
+        $.ajax({
+            url: '/workflow',
+            type: 'POST',
+            contentType: 'application/json', // 设置请求头为JSON
+            data: JSON.stringify({
+              action: 'load_plugins_page',
+              WorkFlowName: WorkFlowName,
+              WorkFlowID: WorkFlowID
+            }), // 发送JSON格式的请求体
+            beforeSend: function() {
+                // 这里也可以使用index，如果你需要在请求发送前做一些事情
+            },
+            success: function(result){
+                layer.close(index); // 关闭加载动画
+                if (result.error) {
+                    layer.alert(result.error.message);
+                } else {
+                    // 将返回的HTML内容放入div中
+                    $('#plugins').html(result);
+                }
+            },
+            error: function(xhr, status, error){
+                layer.close(index); // 关闭加载动画
+                layer.alert('服务器错误');
+            }
+        });
+    });
+
+  // 绑定按钮点击事件-测试工作流
+  $('#btn_testwf').on('click', function() {
+
+    var WorkFlowName = $('#WorkFlowName').text();
+    var WorkFlowID = $('#WorkFlowID').text();
+    var taskCount = $('#taskCount').text(); // 假设页面上有一个元素显示插件数量
+
+    if (parseInt(taskCount) < 2) {
+        // 如果插件数量少于2，显示错误信息并停止执行
+        layer.alert('工作流至少包含2个或以上任务', {title: '错误', closeBtn: 0});
+        return; // 停止执行
+    }
+
+    layer.alert('本次运行仅测试脚本连通性，测试成功不代表正式运行中是顺利的，请悉知！', {title: '提示', closeBtn: 0}, function(index) {
+        layer.close(index); // 关闭当前弹窗
+
+        var postData = {
+            action: 'test_conn_workflow',
+            WorkFlowName: WorkFlowName,
+            WorkFlowID: WorkFlowID
+        };
+
+        // 显示加载动画
+        var loadIndex = layer.load(1, {
+          shade: [0.5, '#fff'] // 0.5透明度的白色背景
+        });
+
+        // 发送 AJAX 请求
+        $.ajax({
+            url: '/workflow',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(postData),
+            success: function(response) {
+              layer.close(loadIndex); // 关闭加载动画
+                if (!response.success) {
+                    layer.alert('错误：' + response.message, {closeBtn: 0}, function(alertIndex) {
+                        layer.close(alertIndex); // 关闭错误消息弹窗
+                        location.reload(); // 刷新页面
+                    });
+                } else {
+                    layer.msg('测试成功：' + response.message, {time: 2000}, function() {
+                        location.reload(); // 刷新页面
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                layer.alert('请求失败：' + error, {closeBtn: 0}, function(alertIndex) {
+                    layer.close(alertIndex); // 关闭错误消息弹窗
+                    location.reload(); // 刷新页面
+                });
+            }
+        });
+    });
+});
+
+
+// 绑定删除工作流的按钮点击事件
+$('#btn_del_WF').click(function(){
+  // 获取工作流的ID
+  var WorkFlowID = $('#WorkFlowID').text();
+
+  // 弹出确认对话框
+  layer.confirm('确定是否删除该工作流？这是不可逆的操作！', {
+    title: '警告',
+    closeBtn: 2,
+    shade: 0.3,
+    anim: 4,
+    icon: 3,
+    btn: ['确定', '取消'] // 按钮
+  }, function(index){
+    // 用户点击“确定”后执行的操作
+    layer.close(index); // 关闭确认对话框
+
+    // 发起POST请求到后端进行删除操作
+    $.ajax({
+      url: '/workflow',
+      type: 'POST',
+      contentType: 'application/json', // 设置请求头为JSON
+      data: JSON.stringify({
+        action: 'del_WF',
+        WorkFlowID: WorkFlowID // 传递工作流ID
+      }),
+      success: function(response){
+        if (response.success) {
+          // 删除成功，刷新页面
+          layer.msg('删除成功');
+          goToPage();
+        } else {
+          // 删除失败，提示错误信息
+          layer.alert(response.message);
+        }
+      },
+      error: function(xhr, status, error){
+        // 请求失败，提示错误信息
+        layer.alert('服务器错误');
+      }
+    });
+  });
+});
+
+    $(document).ready(function() {
+      var id = getQueryParam('id');
+    // 发送请求到后端以加载CreWF_sub_list页面
+    $.ajax({
+      url: '/workflow', // 后端处理请求的URL
+      type: 'POST',
+      contentType: 'application/json', // 设置请求头为JSON
+      data: JSON.stringify({
+        action: 'CreWF_sub_list', // 发送的action参数
+        id: id
+      }),
+      success: function(result) {
+        // 请求成功后，将返回的页面内容放入CreWF_sub_list的容器中
+        if (result) {
+          $('#CreWF_sub_list').html(result);
+        } else {
+          layer.alert('没有返回数据');
+        }
+      },
+      error: function(xhr, status, error) {
+        layer.alert('服务器错误');
+      }
+    });
+  });
+// 更新页面内容
+function updatePageContent(response) {
+  var workflowData = response.workflowData;
+  var count = response.count;  // 接收数据数量
+
+  // 检查是否为数组且有元素
+  if (Array.isArray(workflowData) && workflowData.length > 0) {
+    // 获取数组中的第一个工作流数据对象
+    var workFlowObj = workflowData[0];
+    // 检查对象是否有 WorkFlowName 属性
+    if (workFlowObj && workFlowObj.WorkFlowName) {
+      // 更新页面上的 WorkFlowName 元素的文本内容WorkFlowCount
+      $('#WorkFlowName').text(workFlowObj.WorkFlowName);
+      $('#WorkFlowID').text(workFlowObj.ID);
+      $('#taskCount').text(count);
+
+    } else {
+      layer.alert('工作流名称数据不存在');
+    }
+  } else {
+    layer.alert('工作流数据数组为空');
+  }
+}
+
+$(document).ready(function() {
+  var id = getQueryParam('id');
+  if (id) {
+    $.ajax({
+      type: "POST",
+      url: "/workflow",
+      contentType: "application/json",
+      data: JSON.stringify({
+        action: "load_workflow_id",
+        id: id
+      }),
+      dataType: "json", // 指定期望的响应数据类型
+      success: function(response) {
+        updatePageContent(response);
+      },
+      error: function(xhr, status, error) {
+        console.log('请求失败');
+        //layer.alert('无法加载工作流数据');
+      }
+    });
+  }
+});
+
+
+});
+
+</script>
+<script>
+function goToPage() {
+  window.location.href = 'WFList.html';
+}
+</script>
+<script>
+  layui.config({
+    base: '../../res/' // 静态资源所在路径
+  }).use(['index'], function(){
+    var $ = layui.$
+    ,admin = layui.admin
+    ,element = layui.element
+    ,router = layui.router();
+
+    element.render('collapse');
+    
+    //事件-折叠
+    element.on('collapse(component-panel)', function(data){
+      layer.msg('展开状态：'+ data.show);
+    });
+  });
+</script>
+
+

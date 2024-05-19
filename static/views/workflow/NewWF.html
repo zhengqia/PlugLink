@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>工作流创建</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../res/layui/css/layui.css" rel="stylesheet"  media="all">
+  <link href="../../res/adminui/dist/css/admin.css" rel="stylesheet"  media="all">
+  <script src="../../res/jquery-3.6.0.min.js"></script>
+  <script src="../../res/layui/layui.js"></script> 
+  <script src="../../res/socket.io.js"></script> 
+
+</head>
+
+<style>
+.custom-fieldset {
+    width: 1000px; /* 设置fieldset的宽度 */
+	border: 1px solid #eeeeee; /* 设置边框 */
+}
+.custom-legend {
+    color: 16baaa; /* 设置标题字体颜色 */
+    font-size: 20px; /* 设置标题字体大小 */
+    font-weight: bold; /* 设置标题字体粗细 */
+
+}
+	
+.button-container {
+    text-align: center; /* 设置按钮容器的文本对齐方式为右对齐 */
+
+}
+	
+.layui-submit {
+	font-size: 20px; /* 设置字体大小为 20 像素 */
+}
+
+</style>
+<body class="layui-padding-3">
+<div style="padding: 32px;">
+<div class="layui-fluid">
+	<div class="layui-row layui-col-space15">
+		<div class="layui-container">
+			<form class="layui-form" action="" lay-filter="component-form-group">
+				<div class="layui-row">
+
+                    <div class="layui-panel layui-border-green" style="width: 80%; margin: 10px auto;">
+                        <div style="padding: 16px;">
+                          在本页面创建您的工作流，您必须先有工作流的名称<br>
+                          将所有的插件连接在一起，很可能组合成您意想不到的超能工具！<br>
+                          创造属于您的“印炒机”
+                        </div>
+                      </div>	
+                  
+                      <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <div class="layui-input-group">
+                                <input type="text" id="WFName" name="WFName" lay-verify="required" placeholder="输入工作流名称，支持中英文，不支持乱字符及修改"  class="layui-input" style="width: 550px;height: 50px;">
+                                <div class="layui-input-suffix">
+                                    <button type="button" class="layui-btn" id="CreFW" style="width: 150px;height: 50px;">创建工作流</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text">
+                        <div class="layui-input-block">
+                                <textarea id="WFDes" placeholder="请输入工作流的描述，不超过100个中文字" lay-verify="required" class="layui-textarea" style="width: 700px;" rows="5" name="WFDes"></textarea>
+                        </div>
+                    </div>
+
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>
+<script>
+layui.use(['form', 'layer', 'jquery'], function(){
+  var form = layui.form;
+  var layer = layui.layer;
+  var $ = layui.jquery;
+
+  // 为创建工作流按钮绑定点击事件
+  $('#CreFW').on('click', function(){
+    var WFName = $('#WFName').val().trim();
+    var WFDes = $('#WFDes').val().trim();
+
+    // 验证WFName是否为空
+    if (!WFName) {
+      layer.msg('工作流名称不能为空', {icon: 5});
+      return;
+    }
+
+    // 使用正则表达式验证WFName，只允许中文、英文、数字和下划线
+    if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(WFName)) {
+      layer.msg('工作流名称只能包含中文、英文、数字或下划线', {icon: 5});
+      return;
+    }
+
+    // 截断工作流描述，最多100个中文字符
+    WFDes = WFDes.substring(0, 100);
+
+    // 发起AJAX请求
+    $.ajax({
+      url: '/workflow', // 后端接收POST请求的URL
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        action: 'Creation_workflow', // 调用的后端函数名称
+        WFName: WFName,
+        WFDes: WFDes
+      }),
+      success: function(response) {
+        if (response.error) {
+          // 如果后端返回错误信息
+          layer.msg(response.error, {icon: 5});
+        } else {
+          // 提交成功，显示提示信息
+          layer.msg('已成功创建工作流，即将进入配置页', {icon: 6}, function() {
+            // 确认提示信息后执行跳转
+            var workflowId = response.id;
+            window.location.href = 'CreWF.html?id=' + encodeURIComponent(workflowId);
+          });
+        }
+      },
+      error: function(xhr) {
+        // AJAX请求失败
+        layer.msg('请求失败，请稍后重试', {icon: 5});
+      }
+    });
+  });
+});
+// layui.use(['form', 'layer', 'jquery'], function(){
+//   var form = layui.form;
+//   var layer = layui.layer;
+//   var $ = layui.jquery;
+
+//   // 为创建工作流按钮绑定点击事件
+//   $('#CreFW').on('click', function(){
+//     // 进行表单的验证
+//     if (!form.val('component-form-group')) {
+//       layer.msg('请填写必填项', {icon: 5});
+//       return;
+//     }
+
+//     var WFName = $('#WFName').val().trim();
+//     var WFDes = $('#WFDes').val();
+
+//     // 截断工作流描述，最多100个中文字符
+//     WFDes = WFDes.substring(0, 100);
+
+//     // 发起AJAX请求
+//     $.ajax({
+//       url: '/workflow', // 后端接收POST请求的URL
+//       type: 'POST',
+//       contentType: 'application/json',
+//       data: JSON.stringify({
+//         action: 'Creation_workflow', // 调用的后端函数名称
+//         WFName: WFName,
+//         WFDes: WFDes
+//       }),
+//       success: function(response) {
+//         if (response.error) {
+//           // 如果后端返回错误信息
+//           layer.msg(response.error, {icon: 5});
+//         } else {
+//           // 提交成功，显示提示信息
+//           layer.msg('已成功创建工作流，即将进入配置页', {icon: 6}, function() {
+//             // 确认提示信息后执行跳转
+//             var workflowId = response.id;
+//             window.location.href = 'CreWF.html?id=' + encodeURIComponent(workflowId);
+//           });
+//         }
+//       },
+//       error: function(xhr) {
+//         // AJAX请求失败
+//         layer.msg('请求失败，请稍后重试', {icon: 5});
+//       }
+//     });
+//   });
+// });
+</script>

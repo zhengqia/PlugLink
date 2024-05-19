@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PlugLink v1.0.0 beta 个人学习版</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../res/layui/css/layui.css" rel="stylesheet">
+  <link href="../res/adminui/dist/css/admin.css" rel="stylesheet">
+  <link rel="stylesheet" href="../res/style/template.css" media="all">
+  <script src="../res/layui/layui.js"></script> 
+
+  <script>
+  /^http(s*):\/\//.test(location.href) || alert('请通过 localhost 访问');;
+  </script>
+
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+</head>
+<body class="layui-layout-body" id="LAY_home_iframe">
+
+  <div id="LAY_app" style="visibility: hidden">
+    <div class="layui-layout layui-layout-admin">
+      <div class="layui-header">
+        <!-- 头部区域 -->
+
+        <ul class="layui-nav layui-layout-left">
+          <li class="layui-nav-item layadmin-flexible" lay-unselect>
+            <a href="javascript:;" layadmin-event="flexible" title="侧边伸缩">
+              <i class="layui-icon layui-icon-shrink-right" id="LAY_app_flexible"></i>
+            </a>
+          </li>
+          
+          <li class="layui-nav-item layui-hide-xs" lay-unselect>
+            <a href="http://www.pluglink.ai/" target="_blank" title="前台">
+              <i class="layui-icon layui-icon-website"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item" lay-unselect>
+            <a href="javascript:;" layadmin-event="refresh" title="刷新">
+              <i class="layui-icon layui-icon-refresh-3"></i>
+            </a>
+          </li>
+          
+<!-- 搜索框 -->
+      
+
+        </ul>
+        <ul class="layui-nav layui-layout-right" lay-filter="layadmin-layout-right">
+		<!-- 消息中心 -->	
+          <li class="layui-nav-item layui-hide-xs" lay-unselect>
+            <a href="javascript:;" layadmin-event="note">
+              <i class="layui-icon layui-icon-note"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item layui-hide-xs" lay-unselect>
+            <a href="javascript:;" layadmin-event="theme">
+              <i class="layui-icon layui-icon-theme"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item layui-hide-xs" lay-unselect>
+            <a href="javascript:;" layadmin-event="fullscreen">
+              <i class="layui-icon layui-icon-screen-full"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item layui-hide-xs" style="height: 60px; line-height: 60px;">
+            <img src="views/image/LOGO_1.png" alt="Logo" style="height: 80%; vertical-align: middle;" id="logoImage2">
+          </li>
+        
+      <!-- <img src="views/image/LOGO_1.png" alt="Logo" style="max-width: 10%; height: auto;"> -->
+		<!-- 我的下拉 -->	
+  </ul>
+      </div>
+      
+      <!-- 侧边菜单 -->
+      <div class="layui-side layui-side-menu">
+        <div class="layui-side-scroll">
+          <div class="layui-logo" lay-href="static/views/my/console.html">
+            <!-- <span>PlugLink平台 1.0.0</span> -->
+            <span>我的PlugLink工作台</span>
+          </div>
+          
+          <ul class="layui-nav layui-nav-tree" lay-shrink="all" id="LAY-system-side-menu" lay-filter="layadmin-system-side-menu">
+            
+			<li data-name="home" class="layui-nav-item layui-nav-itemed">
+              <a href="javascript:;" lay-tips="主页" lay-direction="2">
+                <i class="layui-icon layui-icon-home"></i>
+                <cite>开始</cite>
+              </a>
+              <dl class="layui-nav-child">
+                <dd data-name="office" class="layui-this">
+                  <a lay-href="static/views/my/console.html">我的办公</a>
+                </dd>
+                <dd data-name="aitools">
+                  <a lay-href="static/views/my/AIURLlist.html">AI工具大全</a>
+                </dd>
+                <dd data-name="study">
+                  <a lay-href="https://drgphlxsfa.feishu.cn/wiki/GeuMwglQdi65BbkclgLcBUCFnRf" target="_blank">学习中心</a>
+                </dd>
+                <!-- <dd data-name="Settings">
+                  <a lay-href="home/homepage2.html">设置</a>
+                </dd> -->
+			  </dl>
+            </li>
+			  
+			<li data-name="home" class="layui-nav-item layui-nav-item">
+              <a href="javascript:;" lay-tips="应用" lay-direction="2">
+                <i class="layui-icon layui-icon-app"></i>
+                <cite>应用</cite>
+              </a>
+              <dl class="layui-nav-child">
+                <dd data-name="app">
+                  <a lay-href="static/views/plugins/myplugins_list.html">我的插件中心</a>
+                </dd>               
+			  </dl>
+				
+              <dl class="layui-nav-child">
+                <dd data-name="app">
+                  <a lay-href="static/views/plugins/setup_plugins_list.html">添加/卸载插件</a>
+                </dd>               
+			  </dl>
+				
+              <dl class="layui-nav-child">
+                <dd data-name="app">
+                  <a lay-href="static/views/manage/file_center.html">临时文件管理</a>
+                </dd>               
+			  </dl>
+				
+              <dl class="layui-nav-child">
+                <dd data-name="app">
+                  <a lay-href="https://drgphlxsfa.feishu.cn/wiki/GAaswosZ4iWJpUkNdRbcNpQ4nAg">应用商店</a>
+                </dd>
+			  </dl>
+            </li>
+      <li data-name="set" class="layui-nav-item">
+        <a href="javascript:;" lay-tips="开发者" lay-direction="2">
+          <i class="layui-icon layui-icon-fonts-code"></i>
+          <cite>开发者</cite>
+        </a>
+        <dl class="layui-nav-child">
+          <dd class="layui-nav-itemed">
+            <a href="javascript:;">插件开发</a>
+            <dl class="layui-nav-child">
+              <dd><a lay-href="static/views/plugins/expplugin.html">部署我的插件</a></dd>
+              <dd><a lay-href="static/views/plugins/myopenlist.html">我的开发列表</a></dd>
+            </dl>
+          </dd>
+          <dd class="layui-nav-itemed">
+            <a href="javascript:;">工作流</a>
+            <dl class="layui-nav-child">
+              <dd><a lay-href="static/views/workflow/NewWF.html">创建工作流</a></dd>
+              <dd><a lay-href="static/views/workflow/WFList.html">工作流列表</a></dd>
+            </dl>
+          </dd>
+        </dl>
+      </li>
+  
+            <!-- <li data-name="user" class="layui-nav-item">
+              <a href="javascript:;" lay-tips="用户" lay-direction="2">
+                <i class="layui-icon layui-icon-user"></i>
+                <cite>用户</cite>
+              </a>
+              <dl class="layui-nav-child">
+                <dd>
+                  <a lay-href="user/user/list.html">网站用户</a>
+                </dd>
+                <dd>
+                  <a lay-href="user/administrators/list.html">后台管理员</a>
+                </dd>
+                <dd>
+                  <a lay-href="user/administrators/role.html">角色管理</a>
+                </dd>
+              </dl>
+            </li>
+            <li data-name="set" class="layui-nav-item">
+              <a href="javascript:;" lay-tips="设置" lay-direction="2">
+                <i class="layui-icon layui-icon-set"></i>
+                <cite>设置</cite>
+              </a>
+              <dl class="layui-nav-child">
+                <dd class="layui-nav-itemed">
+                  <a href="javascript:;">系统设置</a>
+                  <dl class="layui-nav-child">
+                    <dd><a lay-href="set/system/website.html">网站设置</a></dd>
+                    <dd><a lay-href="set/system/email.html">邮件服务</a></dd>
+                  </dl>
+                </dd>
+                <dd class="layui-nav-itemed">
+                  <a href="javascript:;">我的设置</a>
+                  <dl class="layui-nav-child">
+                    <dd><a lay-href="set/user/info.html">基本资料</a></dd>
+                    <dd><a lay-href="set/user/password.html">修改密码</a></dd>
+                  </dl>
+                </dd>
+              </dl>
+            </li> -->
+          </ul>
+
+      <div class="sidebar-logo" style="position: absolute; bottom: 0; width: 92%; text-align: center;padding: 0;">
+        <img src="views/image/LOGO_2.png" alt="Logo" style="max-width: 100%; height: 60%;" id="logoImage">
+      </div>          
+
+        </div>
+      </div>
+
+
+      <!-- 页面标签 -->
+      <div class="layadmin-pagetabs" id="LAY_app_tabs">
+        <div class="layui-icon layadmin-tabs-control layui-icon-prev" layadmin-event="leftPage"></div>
+        <div class="layui-icon layadmin-tabs-control layui-icon-next" layadmin-event="rightPage"></div>
+        <div class="layui-icon layadmin-tabs-control layui-icon-down">
+          <ul class="layui-nav layadmin-tabs-select" lay-filter="layadmin-pagetabs-nav">
+            <li class="layui-nav-item" lay-unselect>
+              <a href="javascript:;"></a>
+              <dl class="layui-nav-child layui-anim-fadein">
+                <dd layadmin-event="closeThisTabs"><a href="javascript:;">关闭当前标签页</a></dd>
+                <dd layadmin-event="closeOtherTabs"><a href="javascript:;">关闭其它标签页</a></dd>
+                <dd layadmin-event="closeAllTabs"><a href="javascript:;">关闭全部标签页</a></dd>
+              </dl>
+            </li>
+          </ul>
+        </div>
+        <div class="layui-tab" lay-unauto lay-allowClose="true" lay-filter="layadmin-layout-tabs">
+          <ul class="layui-tab-title" id="LAY_app_tabsheader">
+            <li lay-id="static/views/my/console.html" lay-attr="static/views/my/console.html" class="layui-this"><i class="layui-icon layui-icon-home"></i></li>
+          </ul>
+        </div>
+      </div>
+      
+      
+      <!-- 主体内容 -->
+      <div class="layui-body" id="LAY_app_body">
+        <div class="layadmin-tabsbody-item layui-show">
+          <iframe src="static/views/my/console.html" frameborder="0" class="layadmin-iframe"></iframe>
+        </div>
+      </div>
+      
+      <!-- 辅助元素，一般用于移动设备下遮罩 -->
+      <div class="layadmin-body-shade" layadmin-event="shade"></div>
+    </div>
+  </div>
+
+</body>
+</html>
+<script>
+layui.config({
+  base: '../res/' // 静态资源所在路径
+}).use(['index']);
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      fetch('/should_clear_storage')
+      .then(response => response.json())
+      .then(data => {
+          if (data.clear_storage) {
+              localStorage.clear();
+              console.log('LocalStorage cleared as directed by backend');
+          }
+      })
+      .catch(error => console.error('Error fetching clear storage directive:', error));
+  });
+</script>
+<script>
+  layui.use(['layer'], function(){
+    var layer = layui.layer;
+    
+    // 通用的弹窗函数
+    function setupPopupForElements(elements, title, content) {
+      elements.forEach(function(elementId) {
+        var element = document.getElementById(elementId);
+        if (element) {
+          element.addEventListener('click', function() {
+            layer.open({
+              type: 1, // HTML内容
+              title: title, // 弹窗标题
+              area: ['600px', '400px'], // 弹窗大小
+              anim: 1, // 动画效果
+              content: '<div style="padding: 20px;">' + content + '</div>' // 弹窗内容
+            });
+          });
+        }
+      });
+    }
+  
+    // 初始化并应用函数
+    var elements = ['logoImage', 'logoImage2']; // 这里添加所有需要绑定事件的元素ID
+    var popupTitle = '关于作者-心易，关于PlugLink'; // 统一的标题
+    var popupContent = `
+    我是PlugLink的作者——心易，一个喜欢搞技术的商人。<br>
+    我并不是一个技术大佬，但我很喜欢通过软件技术去实现一些商业构思，希望能和你交朋友。<br><br>
+    PlugLink顾名思义，插件的链接。<br>
+    它将用于链接千千万万的脚本、API、AI大模型等，并实现全自动工作流程，你也可以称它为“印钞机”。它始于技术爱好，广泛服务于各种商业系统，它是一个基于应用层的大框架，不仅能让开发者降低应用层开发周期，也能让企业办公进入自动化流程，降本增效。<br><br>
+    PlugLink每一个插件均可自由无序链接成不同的工作流并自动化运作，适应多种复杂工作场景，这将取决于你的创造力，不同的模块将组合成无数的可能，也将创造无数的可能，这将是一件非常有趣的事。<br>
+    OH....鬼斧神工！<br><br>
+    我的微信：aixzxinyi8<br>
+    `; 
+    setupPopupForElements(elements, popupTitle, popupContent);
+  });
+  </script>
+  
