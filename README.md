@@ -2,8 +2,10 @@
 
 作者：心易
 
+![LOGO横](https://github.com/zhengqia/PlugLink/assets/155066150/ddfd70b3-3c20-4bb1-b362-94425f902c85)
+
 ## 关于PlugLink
-PlugLink顾名思义，插件的链接。
+PlugLink顾名思义，插件的链接，您的自动化机器人。
 - 前端：layui框架
 - 后端：python
 - 数据库：SQLite
