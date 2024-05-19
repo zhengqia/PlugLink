@@ -36,7 +36,7 @@ PlugLink用于链接各种脚本、API、AI大模型，实现全自动工作流�
 - PlugLink官方网址：www.pluglink.cn www.pluglink.ai www.pluglink.dev （网站均未开放）
 - 我的飞书主页： [飞书主页](https://drgphlxsfa.feishu.cn/wiki/GeuMwglQdi65BbkclgLcBUCFnRf)
 
-当前发布的是PlugLink 1.0.0 bate 个人学习版，实际是测试版，不确定正式版发布时间，视开发情况而定。
+当前发布的是PlugLink 1.0.0 beta 个人学习版，实际是测试版，不确定正式版发布时间，视开发情况而定。
 
 应用版下载地址：
 - [应用版下载](https://pan.baidu.com/s/19tinAQNFDxs-041Zn7YwcQ?pwd=PLUG) 提取码：PLUG
