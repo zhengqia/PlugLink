@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>批量视频合成</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../../static/res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../../static/res/adminui/dist/css/admin.css" rel="stylesheet">
+  <script src="../../../static/res/jquery-3.6.0.min.js"></script></script></script>
+  <script src="../../../static/res/layui/layui.js"></script></script></script> 
+  <script src="../../../static/res/socket.io.js"></script></script></script> 
+
+</head>
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<style>
+.custom-fieldset {
+    width: 1000px; /* 设置fieldset的宽度 */
+	border: 1px solid #eeeeee; /* 设置边框 */
+}
+.custom-legend {
+    color: 16baaa; /* 设置标题字体颜色 */
+    font-size: 20px; /* 设置标题字体大小 */
+    font-weight: bold; /* 设置标题字体粗细 */
+
+}
+	
+.button-container {
+    text-align: center; /* 设置按钮容器的文本对齐方式为右对齐 */
+
+}
+	
+.layui-submit {
+	font-size: 20px; /* 设置字体大小为 20 像素 */
+}
+
+</style>
+<body class="layui-padding-3">
+<div style="padding: 32px;">
+<div class="layui-fluid">
+	<div class="layui-row layui-col-space15">
+		<div class="layui-container">
+			<form class="layui-form" action="" lay-filter="component-form-group">
+				<div class="layui-row">
+
+						<fieldset class="layui-elem-field custom-fieldset">
+							<blockquote class="layui-elem-quote custom-legend">
+							  多视频合成插件-入口配置参数
+							</blockquote>
+									<div class="layui-panel layui-border-green" style="width: 80%; margin: 10px auto;">
+									  <div style="padding: 16px;">
+										多视频合成插件，根据多种素材合成视频；<br>
+										每种素材归类放置于目录下，例如A目录10个片段，B目录5个片段，C目录2个片段，那么就会将ABC三个目录的视频进行合并；<br>
+										您还可以设置哪个是片头，哪个片尾，或者是多个目录按既定的顺序来合并，甚至还可以所有目录无序混合。
+										<br>
+										带*为必须填写。
+									  </div>
+									</div>	
+									<br>
+
+							
+<!--
+									<div class="layui-form-item">
+										<label class="layui-form-label"  style="width: 100px;">总目录</label>
+										<div class="layui-input-block">
+											<div class="layui-input-group">
+
+												<input type="text" id="VidClassDir" name="VidClassDir" placeholder="输入总文件夹"  class="layui-input" style="width: 300px;">
+												
+												<div class="layui-input-suffix">
+													<button type="button" class="layui-btn" id="checkBtn">目录扫描</button>
+												</div>
+												可以输入目录例如：your_dirname/，或绝对路径
+											</div>
+										</div>
+									</div>
+-->
+   
+									<div class="layui-form-item">	
+										<label class="layui-form-label"  style="width: 100px;">添加合成目录</label>
+										<div class="layui-input-block">
+											<div class="layui-input-group">
+
+												<input type="text" id="VidClassDir" name="VidClassDir" placeholder="输入合成的目录名称，不要重复"  class="layui-input" style="width: 300px;">
+												<div class="layui-btn-container">
+												  <button type="button" class="layui-btn" lay-on="tabAdd">添加目录</button>
+												</div>
+											</div>
+										</div>	
+									</div>	
+							
+									<div class="layui-form-item">  
+									<label class="layui-form-label"  style="width: 100px;">*文件上传</label>
+										<div class="layui-input-block">
+											<div class="layui-input-group">
+												<div class="layui-tab" lay-filter="file-handle">
+												  <ul class="layui-tab-title"></ul>
+												  <div class="layui-tab-content"></div>
+												</div>
+									 		</div>
+										</div>
+									</div>
+
+
+								  <div class="layui-form-item">
+									<label class="layui-form-label"  style="width: 100px;">按目录顺序合并</label>
+									<div class="layui-input-block">
+									  <input type="radio" name="custom_order" value="Flase" title="不要">
+									  <input type="radio" name="custom_order" value="True" title="是的" checked="">
+									</div>
+								  </div>
+							
+								  <div class="layui-form-item">
+									<div class="layui-inline"> 
+									  <label class="layui-form-label" style="width: 100px;">片头指定</label>
+									  <div class="layui-input-inline">
+										<input type="tel" name="head_dir"  class="layui-input" placeholder="填写选项卡名称">
+									  </div>
+									</div>
+									  
+									<div class="layui-inline">
+									  <label class="layui-form-label">片尾指定</label>
+									  <div class="layui-input-inline">
+										<input type="text" name="tail_dir"  class="layui-input" placeholder="填写选项卡名称">
+									  </div>
+									</div>
+									<div class="layui-inline">为空则不指定</div>
+								  </div>
+
+								  <div class="layui-form-item">
+									<label class="layui-form-label"  style="width: 100px;">渐变转场</label>
+									<div class="layui-input-block">
+									  <input type="checkbox" checked="" name="enable_transitions" lay-skin="switch" lay-filter="component-form-switchTest" lay-text="ON|OFF">
+									</div>
+								  </div>	
+							
+								  <div class="layui-form-item">
+									<div class="layui-inline">
+									  <label class="layui-form-label" style="width: 100px;">转场时长</label>
+									  <div class="layui-input-inline" style="width: 100px;">
+										<input type="number" name="transition_duration"  class="layui-input" lay-affix="number" value="0.5">
+									  </div>
+									</div>
+								  </div>
+
+
+									<div class="layui-form-item">
+										<label class="layui-form-label"  style="width: 100px;">输出目录</label>
+										<div class="layui-input-block">
+											<div class="layui-input-group">
+												<input type="text" id="output_dir" name="output_dir" placeholder="输入目录"  class="layui-input" style="width: 500px;">
+												合并后视频输出的目录，例如：your_dirname/，或绝对路径
+											</div>
+										</div>
+									</div>
+							
+								  <div class="layui-form-item">
+									<label class="layui-form-label" style="width: 100px;">输出格式</label>
+									<div class="layui-inline">
+									  <select name="output_extensionoutput_extension" lay-filter="required" lay-search="">
+										<option value=".mp4" selected="">*.mp4</option>
+										<option value=".avi">*.avi</option>
+										<option value=".mov">*.mov</option>
+										<option value=".mkv">*.mkv</option>
+									  </select>
+									</div>
+								  </div>
+							
+								  <div class="layui-form-item">
+										<label class="layui-form-label" style="width: 100px;">计算</label>
+									    <div style="text-align: left;">
+										<button type="button" class="layui-btn layui-btn-fluid layui-bg-orange" id="analystsBtn" style="width: 300px;">开始分析合成数据</button>
+										</div>
+								  </div>
+								<div class="layui-form-item">
+									<label class="layui-form-label" style="width: 100px;"></label>
+									<pre class="layui-code code-msg" lay-options="{theme: 'dark'}">
+									
+									</pre>
+								</div>
+
+								  <div class="layui-form-item">
+									<div class="layui-input-block button-container" style="text-align: right;">
+									  <button type="button" class="layui-btn layui-btn-disabled layui-submit" lay-submit lay-filter="add-submit" style="width: 300px;height: 60px;">开始执行合成任务
+									</div>
+								  </div>
+							
+							
+						</fieldset>					
+
+          </div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>
+						
+</body>
+</html>
+
+<script>
+var title, totalDirName, startUpload,uploadList;
+var uploadStatus = {}; //上传检测的全局变量
+var uploadedVideosInfo = {};//信息保存的全局变量
+	
+layui.use(['element', 'util', 'layer', 'jquery','upload'], function(){
+  var element = layui.element;
+  var upload = layui.upload;
+  var util = layui.util;
+  var layer = layui.layer;
+  var $ = layui.jquery;
+  
+  // 总目录名和是否已创建的标志
+  var totalDirCreated = false;
+  var totalDirName = '';
+
+  // 存储已添加的目录名称，以确保不重复
+  var addedDirectories = {};
+
+  // 生成随机字符串的函数，用于创建总目录名
+  function generateRandomString(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  }
+
+  // 添加目录逻辑调整
+  util.event('lay-on', {
+    'tabAdd': function(){
+     title = document.getElementById('VidClassDir').value.trim();
+	//var title = document.getElementById('VidClassDir').value.trim(); // 获取文本框的值并去除首尾空格
+
+	// 检查标题是否为空、包含中文或特殊字符，以及是否已存在
+      if (!title || /[^a-zA-Z0-9_\-]/.test(title)) {
+        layer.msg('目录名称不可使用中文或乱字符，请重新输入');
+        return;
+      }
+      if (addedDirectories[title]) {
+        layer.msg('不能添加同名的目录');
+        return;
+      }
+      
+	  
+      // 添加到已添加目录的记录中
+      addedDirectories[title] = true;
+	  
+	// 如果是第一个选项卡，生成总目录名并向后端发送创建请求
+      if (!totalDirCreated) {
+        totalDirName = generateRandomString(12); // 生成总目录名
+        totalDirCreated = true; // 标记为已创建
+        // 向后端发送请求创建总目录和子目录
+        sendDirectoryAction('createDir', {totalDirName: totalDirName, subdirName: title});
+      } else {
+        // 只创建子目录
+        sendDirectoryAction('createDir', {totalDirName: totalDirName, subdirName: title});
+      }
+		
+		
+	  var timeStamp = new Date().getTime();
+      // 动态创建选项卡内容
+	  var content = '<div class="layui-col-md12" style="width: 800px;">' +
+		'<div class="layui-card">' +
+		'<div class="layui-card-header">支持上传mp4|avi|mov|mkv格式的视频</div>' +
+		'<div class="layui-card-body">' +
+		'<div class="layui-upload">' +
+		'<button type="button" class="layui-btn layui-btn-normal" id="uploadList' + timeStamp + '">选择多文件</button>' +
+		'<div class="layui-upload-list">' +
+		'<table class="layui-table">' +
+		'<colgroup><col><col width="150"><col width="260"><col width="150"></colgroup>' +
+		'<thead><tr><th>文件名</th><th>大小</th><th>上传进度</th></tr></thead>' +//<th>操作</th>
+		'<tbody id="List' + timeStamp + '"></tbody>' +
+		'</table></div>' +
+		'<button type="button" class="layui-btn" id="startUpload' + timeStamp + '">开始上传</button>' +
+		'<button type="button" class="layui-btn layui-bg-red delete-btn" data-timeStamp="' + timeStamp + '" data-dirName="' + title + '" data-totalDirName="' + totalDirName + '">删除这个目录</button>' +
+		'</div></div></div></div>';
+      // 新增一个 tab 项
+      element.tabAdd('file-handle', { // 注意这里需要将 'file-handle' 替换为您实际的 tab 组件的 lay-filter 值
+        title: title,
+        content: content,
+        id: title,//new Date().getTime(), // 使用当前时间戳作为唯一标识符
+        change: true // 是否添加完毕后即自动切换
+      });
+
+      // 清空文本框内容
+      document.getElementById('VidClassDir').value = '';
+	  //initUploadLogic(totalDirName,title,timeStamp);
+
+    }
+  });
+
+//触发删除按钮
+$(document).on('click', '.delete-btn', function(){
+    var dirName = $(this).data('dirname'); // 子目录名，注意使用全小写
+    var totalDirName = $(this).data('totaldirname'); // 总目录名，注意使用全小写
+
+	layer.confirm('确定要删除' + dirName + '这个目录吗？', function(index){
+		console.log("totalDirName:", totalDirName);
+		console.log("dirName:", dirName);
+		
+        // 检查是否是最后一个子目录
+        if (Object.keys(addedDirectories).length === 1 && addedDirectories.hasOwnProperty(dirName)) {
+            // 如果是最后一个子目录，发送请求同时删除子目录和总目录
+            sendDirectoryAction('deleteDir', {totalDirName: totalDirName, subdirName: dirName, lastOne: true});
+        } else {
+            // 否则，只删除子目录
+            sendDirectoryAction('deleteDir', {totalDirName: totalDirName, subdirName: dirName, lastOne: false});
+        }
+
+        // 删除对应的选项卡
+        element.tabDelete('file-handle', dirName); // 确保这里使用正确的标识符
+		uploadStatus[dirName] = false;//删除上传成功检测列表
+        delete addedDirectories[dirName]; // 从记录中删除目录名
+        if (Object.keys(addedDirectories).length === 0) {
+            totalDirCreated = false;
+        }
+
+        layer.close(index);
+    });
+});
+
+//执行创建和删除
+function sendDirectoryAction(action, data) {
+    $.ajax({
+        type: "POST",
+        url: "/videosyn/",
+        contentType: "application/json",
+        data: JSON.stringify(Object.assign({}, data, {action: action})),
+        success: function(response) {
+            layer.msg(response.message);
+            if (data.dirName === totalDirName) {
+                // 如果删除的是总目录，清空记录
+                addedDirectories = {};
+                totalDirCreated = false;
+            }
+        },
+        error: function(xhr, status, error) {
+            layer.msg('请求失败: ' + error);
+        }
+    });
+}
+
+//获取选项卡名称
+layui.use('element', function(){
+  var element = layui.element;
+  
+  // 监听选项卡切换
+  element.on('tab(file-handle)', function(data){
+    var tabTitle = this.innerText; // 获取选项卡的名称
+    //console.log("2当前选中的选项卡名称为：" + tabTitle);
+	//console.log("时间戳为：" + String(timeStamp));
+
+	 
+    var currentTabContent = $('.layui-tab-content .layui-tab-item').eq(data.index); // 获取当前选中的选项卡内容
+
+	// 获取按钮元素
+    var deleteBtn = currentTabContent.find('.delete-btn');
+
+	// 获取 data-timeStamp 属性的值
+    var timeStamp = deleteBtn.attr('data-timeStamp');
+
+    // 初始化上传逻辑，确保根据当前选项卡信息
+    initUploadLogic(totalDirName, tabTitle,timeStamp);
+//	  console.log("总目录名称为：" + totalDirName);
+//	  console.log("当前选中的选项卡名称为：" + tabTitle);
+//	  console.log("时间戳为：" + String(timeStamp));
+  });
+
+});
+
+function initUploadLogic(totalDirName,tabTitle,timeStamp) {
+  var timeStamptemp = String(timeStamp); 
+  var uploadListSelector = '#uploadList' + timeStamptemp;
+  var startUploadSelector = '#startUpload' + timeStamptemp;
+	
+  // 检查该选项卡的上传状态
+//  if (uploadStatus[tabTitle]) {
+//    layer.msg('每个选项卡仅支持上传一次，您可以删除目录后重建再上传。');
+//    return; // 如果已经上传过，退出函数
+//  }
+
+  var uploadListIns = upload.render({
+	elem: uploadListSelector,//'#uploadList' + timeStamp, // 替换为实际的元素ID
+    elemList: $('#List' + timeStamptemp), // 列表元素对象，动态生成
+    url: '/videosyn/upload', // 实际使用时改成您自己的上传接口即可
+	data: {
+		totalDirName: totalDirName, // 发送时间戳
+		tabTitle: tabTitle // 发送当前选项卡的名称
+	},
+
+    //accept: 'file',
+	accept: 'video', // 可以设置为视频类型
+	exts: 'mp4|avi|mov|mkv', // 这里列出你想要的文件扩展名
+
+    multiple: true,
+    number: 1000,
+    auto: false,
+    bindAction:startUploadSelector,// '#startUpload' + timeStamp, // 开始上传按钮的动态ID
+    choose: function(obj){
+	  var that = this;
+      var files = this.files = obj.pushFile(); // 将每次选择的文件追加到文件队列
+	 	console.log(files);
+		console.log(startUploadSelector);
+		console.log(uploadListSelector);
+
+      // 读取本地文件
+      obj.preview(function(index, file, result){
+        var tr = $(['<tr id="upload-'+ index +'">',
+          '<td>'+ file.name +'</td>',
+          '<td>'+ (file.size/1024).toFixed(1) +'kb</td>',
+          '<td><div class="layui-progress" lay-filter="progress-'+ index +'"><div class="layui-progress-bar" lay-percent=""></div></div></td>',
+//          '<td>',
+//            '<button class="layui-btn layui-btn-xs reload layui-hide">重传</button>',
+//            '<button class="layui-btn layui-btn-xs layui-btn-danger delete">删除</button>',
+//          '</td>',
+        '</tr>'].join(''));
+        
+        // 单个重传
+        tr.find('.reload').on('click', function(){
+          obj.upload(index, file);
+        });
+        
+        // 删除
+        tr.find('.delete').on('click', function(){
+          delete files[index]; // 删除对应的文件
+          tr.remove(); // 删除表格行
+          // 清空 input file 值，以免删除后出现同名文件不可选
+          uploadListIns.config.elem.next()[0].value = ''; 
+        });
+        
+        that.elemList.append(tr);
+        element.render('progress'); // 渲染新加的进度条组件
+      });
+    },
+    done: function(res, index, upload){ // 成功的回调
+      var that = this;
+       //if(res.code == 0){ // 上传成功
+        var tr = that.elemList.find('tr#upload-'+ index)
+        var tds = tr.children();
+        //tds.eq(2).html(''); // 清空操作
+        delete this.files[index]; // 删除文件队列已经上传成功的文件
+		
+		//确认该选项卡上否有上传过文件，若是为true   
+        uploadStatus[tabTitle] = true;
+        $(startUploadSelector).addClass('layui-btn-disabled').prop('disabled', true);
+		console.log(startUploadSelector);
+		
+		
+		layer.msg('上传成功');
+		   
+        return;
+      //}
+      this.error(index, upload);
+    },
+	error: function(index, upload){ // 错误回调
+	  layer.msg('上传失败，请重试');
+	},
+
+    allDone: function(obj){ // 多文件上传完毕后的状态回调
+      console.log(obj)
+    },
+    error: function(index, upload){ // 错误回调
+      var that = this;
+      var tr = that.elemList.find('tr#upload-'+ index);
+      var tds = tr.children();
+       // 显示重传
+      tds.eq(3).find('.reload').removeClass('layui-hide');
+    },
+    progress: function(n, elem, e, index){ // 注意：index 参数为 layui 2.6.6 新增
+      element.progress('progress-'+ index, n + '%'); // 执行进度条。n 即为返回的进度百分比
+    }
+  });
+}
+
+	
+$('#analystsBtn').on('click', function() {
+    
+	//是否按目录顺序合并
+    var customOrder = $('input[name="custom_order"]:checked').val(); // 捕获用户的选择
+    var directoriesOrder = [];
+	//检查片头和片尾
+    var headDir = $('input[name="head_dir"]').val(); // Capture the input value for "片头指定"
+    var tailDir = $('input[name="tail_dir"]').val(); // Capture the input value for "片尾指定"
+	
+    var enableTransitions = $('input[name="enable_transitions"]').is(':checked'); // 渐变转场状态
+    var transitionDuration = $('input[name="transition_duration"]').val(); // 转场时长
+    var outputExtension = $('select[name="output_extensionoutput_extension"]').val(); // 输出格式
+
+	var outputDir = $('#output_dir').val(); // 获取“输出目录”的输入值
+
+    // 是否按目录顺序合并,如果用户选择了"是的"，则按顺序收集所有目录名称
+    if(customOrder === "True") {
+        directoriesOrder = Object.keys(addedDirectories); // 这里assumes addedDirectories维护了所有添加的目录
+    } else {
+        directoriesOrder = null; // 如果用户选择"不要"，则设置为null
+    }	
+	
+    // 检查片头和片尾是否在已添加的目录中，如果它们不为空
+    var headDirExists = headDir === '' || addedDirectories[headDir];
+    var tailDirExists = tailDir === '' || addedDirectories[tailDir];
+
+    // 如果片头或片尾目录不存在于addedDirectories中，则显示错误提示并中止操作
+    if (!headDirExists || !tailDirExists) {
+        var errorMessage = '以下目录不存在：';
+        if (!headDirExists && headDir !== '') errorMessage += '片头指定目录 "' + headDir + '"';
+        if (!tailDirExists && tailDir !== '') {
+            if (!headDirExists && headDir !== '') errorMessage += ' 和 ';
+            errorMessage += '片尾指定目录 "' + tailDir + '"';
+        }
+        layer.msg(errorMessage);
+        return; // 中止操作
+    }
+
+    // 验证转场时长是否为合法数值
+    if (isNaN(transitionDuration) || transitionDuration <= 0) {
+        layer.msg('转场时长必须是大于0的数值');
+        return; // 终止操作
+    }
+
+
+	// 发送请求到后端进行目录扫描
+    $.ajax({
+        type: "POST",
+        url: "/videosyn/", // 根据实际情况修改URL
+        contentType: "application/json",
+        data: JSON.stringify({
+            action: "scanDirectories",
+            totalDirName: totalDirName // 确保这个变量是用户输入或选择的总目录名
+        }),
+        success: function(response) {
+            // 假设后端返回的数据结构是{directories: {'dir1': ['file1', 'file2'], 'dir2': []}}
+            uploadedVideosInfo = response.directories;
+            
+            // 这里可以添加逻辑来检查uploadedVideosInfo是否符合条件
+            // 例如，检查是否至少创建了两个目录，每个目录下是否至少有一个视频文件等
+            if (validateUploadedVideosInfo(uploadedVideosInfo)) {
+                // 如果验证通过，继续后续操作，比如保存信息等
+               saveUploadedVideosInfo(customOrder,directoriesOrder,headDir,tailDir,enableTransitions,transitionDuration,outputExtension,outputDir);
+            } else {
+                // 如果验证失败，显示错误信息等
+            }
+        },
+        error: function() {
+            layer.msg('保存数据失败，可能是因为设置不合法');
+        }
+    });
+	
+
+
+	
+	
+});
+	
+// 验证uploadedVideosInfo的函数
+function validateUploadedVideosInfo(uploadedVideosInfo) {
+    let directoryCount = Object.keys(uploadedVideosInfo).length;
+    if (directoryCount < 2) {
+        layer.msg('至少创建2个目录');
+        return false;
+    }
+
+    for (let dir in uploadedVideosInfo) {
+        if (uploadedVideosInfo[dir].length === 0) {
+            layer.msg(`目录【${dir}】没有上传视频`);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+function saveUploadedVideosInfo(customOrder,directoriesOrder,headDir,tailDir,enableTransitions,transitionDuration,outputExtension,outputDir) {
+    // 发送请求到后端进行信息保存
+    $.ajax({
+        type: "POST",
+        url: "/videosyn/", // 根据实际情况修改URL
+        contentType: "application/json",
+        data: JSON.stringify({
+            action: "saveVideosInfo",
+			uploadedVideosInfo: uploadedVideosInfo,//全局变量，仅记录前期用户上传的所有目录和视频
+            totalDirName: totalDirName, // 总目录
+            customOrder: customOrder,//是否选择合并
+            directoriesOrder: directoriesOrder,//若选择合并，这里保存所有的选项卡名称
+            headDir: headDir,//片头
+            tailDir: tailDir,//片尾
+			enableTransitions:enableTransitions,//渐变转场状态
+			transitionDuration:transitionDuration,//转场时长
+			outputExtension:outputExtension,//输出格式
+			outputDir:outputDir,//输出目录
+
+        }),
+        success: function(response) {
+            $('.code-msg').text(response);
+			layer.msg('视频信息保存成功');
+			//解除“执行合成”按钮
+            $('.layui-btn[lay-filter="add-submit"]').removeClass('layui-btn-disabled').prop('disabled', false);
+
+        },
+        error: function() {
+            layer.msg('视频信息保存失败，请重试');
+        }
+    });
+}
+	
+////执行合成任务
+//$('body').on('click', '.layui-btn[lay-filter="add-submit"]', function(){
+//	if(!$(this).hasClass('layui-btn-disabled')){
+//		// 向后端发送请求
+//		$.ajax({
+//			type: "POST",
+//			url: "/fetch_info", // 替换为实际的后端处理URL
+//			data: {action: 'exevid'},
+//			success: function(response) {
+//				// 根据需要处理响应，如跳转到新页面
+//				window.location.href = "crafting.html"; // 替换为实际的页面URL
+//			},
+//			error: function() {
+//				layer.msg('操作失败，请重试');
+//			}
+//		});
+//	}
+//});
+
+$('body').on('click', '.layui-btn[lay-filter="add-submit"]', function() {
+    if (!$(this).hasClass('layui-btn-disabled')) {
+        // 直接跳转到 crafting.html 页面
+        window.location.href = "crafting.html"; // 确保这里的 URL 是正确的
+    }
+});
+
+});
+</script>
+<script>
+layui.use(function(){
+  // code
+  layui.code({
+    elem: '.code-msg'
+  });
+})
+</script>
+
+

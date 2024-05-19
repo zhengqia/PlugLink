@@ -1,0 +1,18 @@
+{
+    "PlugDir": "videosyn",
+    "PlugName": "PlugLink视频合成",
+    "Ver": "1.0.0",
+    "ICO": "videosyn/favicon.jpg",
+    "PlugHTML": "index.html",
+    "PlugDes": "视频合成（videosyn）是由PlugLink官方开发的多素材合成插件，主要用于矩阵号发布，解放双手",
+    "VerDes": "该版本为PlugLink的首发版",
+    "APIDes": "关于JSON格式的值说明：\nvid：这是所有视频地址的绝对路径列表，可不填；\ntotalDirName：任务名称\ntotalfilename：总目录绝对路径\ncustom_order：所有素材目录绝对路径\nhead_dir：片头素材目录绝对路径\ntail_dir：片尾素材目录绝对路径\nenable_transitions：是否渐变转场，若是填写True，否则False\ntransition_duration：转场时长，默认0.5\noutput_extension：合并后文件后缀，如*.mp4\noutput_dir：输出目录的绝对路径",
+    "author": "心易",
+    "comname": "古戈尔（深圳）人工智能科技有限公司",
+    "website": "https://www.pluglink.ai",
+    "help": "",
+    "uplink": "",
+    "uploadDir": "upload,output",
+    "Keypass": "gf2IbAg4yiqm68FnQNh4AN1Q2FcZnfBw4ZCI",
+    "CreDate": "2024-05-09 13:58:12"
+}

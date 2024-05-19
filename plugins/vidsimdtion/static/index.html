@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>批量视频相似度检测工具</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../../static/res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../../static/res/adminui/dist/css/admin.css" rel="stylesheet">
+  <script src="../../../static/res/jquery-3.6.0.min.js"></script></script></script>
+  <script src="../../../static/res/layui/layui.js"></script></script></script> 
+  <script src="../../../static/res/socket.io.js"></script></script></script> 
+
+</head>
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<style>
+.custom-fieldset {
+    width: 1000px; /* 设置fieldset的宽度 */
+	border: 1px solid #eeeeee; /* 设置边框 */
+}
+.custom-legend {
+    color: 16baaa; /* 设置标题字体颜色 */
+    font-size: 20px; /* 设置标题字体大小 */
+    font-weight: bold; /* 设置标题字体粗细 */
+
+}
+	
+.button-container {
+    text-align: center; /* 设置按钮容器的文本对齐方式为右对齐 */
+
+}
+	
+.layui-submit {
+	font-size: 20px; /* 设置字体大小为 20 像素 */
+}
+
+</style>
+<body class="layui-padding-3">
+<div style="padding: 32px;">
+<div class="layui-fluid">
+	<div class="layui-row layui-col-space15">
+		<div class="layui-container">
+			<form class="layui-form" action="" lay-filter="component-form-group">
+				<div class="layui-row">
+
+						<fieldset class="layui-elem-field custom-fieldset">
+							<blockquote class="layui-elem-quote custom-legend">
+							  视频相似度检测插件-入口配置参数
+							</blockquote>
+									<div class="layui-panel layui-border-green" style="width: 80%; margin: 10px auto;">
+									  <div style="padding: 16px;">
+										输入视频存放目录，点击运行，即可输出各视频相似度表<br>
+                                        一次可检测一个目录，目录下不限数量<br>
+                                        由于大部分浏览器不允许访问用户文件夹，因此请手动输入绝对路径，如：D:\vid\
+									  </div>
+									</div>	
+									<br>
+
+   
+									<div class="layui-form-item">	
+										<label class="layui-form-label"  style="width: 100px;">添加检测目录</label>
+										<div class="layui-input-block">
+											<div class="layui-input-group">
+
+												<input type="text" id="VidClassDir" name="VidClassDir" placeholder="输入绝对路径，如：D:\vid\"  class="layui-input" style="width: 500px;">
+											</div>
+										</div>	
+									</div>	
+                  
+								  <div class="layui-form-item">
+									<div class="layui-input-block button-container" style="text-align: right;">
+                                      <button type="button" class="layui-btn layui-submit layui-bg-orange" lay-submit id="save" style="width: 150px;height: 60px;">保存设置
+									  <button type="button" class="layui-btn layui-submit" lay-submit lay-filter="add-submit" id="add-submit" style="width: 200px;height: 60px;">开始检测
+									</div>
+								  </div>
+                  <br>
+							    <hr class="layui-border-green">
+                  <br>
+                  <div class="layui-progress layui-progress-big" lay-filter="progressBar">
+                    <div class="layui-progress-bar" lay-percent="0%"></div>
+                  </div>	
+                  <div id="progress-text"></div>
+                  <hr class="layui-border-green">
+                  <button type="button" class="layui-btn layui-submit layui-bg-blue" disabled id="download-btn" style="width: 200px;height: 60px;" onclick="location.href='/vidsimdtion/?action=download'">下载表格
+
+                  
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>
+						
+</body>
+</html>
+  
+<script>
+layui.use(['form', 'jquery', 'layer','element'], function(){
+    var form = layui.form;
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    var element = layui.element;
+
+    // 页面加载时请求api.json中保存的路径
+    $(document).ready(function() {
+        $.ajax({
+            type: 'GET',
+            url: '/vidsimdtion/', // 这里替换为您的实际URL
+            data: {action: "load_api"},
+            success: function(response){
+                if(response.dir) {
+                    $('#VidClassDir').val(response.dir);
+                }
+            },
+            error: function(){
+            //    layer.msg('无法加载保存的路径！');
+            }
+        });
+    });
+
+    // 监听提交
+    form.on('submit(add-submit)', function(data){
+        var videoDirectory = $('#VidClassDir').val();
+        if(!videoDirectory) {
+            layer.msg('请输入视频存放的绝对路径！');
+            return false;
+        }
+        
+        // 禁用按钮和输入框防止重复提交
+        $('#VidClassDir').prop('disabled', true);
+        $('#download-btn').prop('disabled', true);
+        $(data.elem).prop('disabled', true).text('检测中...');
+
+        // 重置进度条和进度文本
+        // layui.element.progress('progressBar', '0%');
+        // document.getElementById('progress-text').innerText = '完成进度：0/x';
+        element.progress('progressBar', '0%');
+        $('#progress-text').text('完成进度：0/x');
+
+        startProgressInterval();
+
+        // AJAX请求后端开始检测
+        $.ajax({
+            type: 'POST',
+            url: '/vidsimdtion/', 
+            data: {dir: videoDirectory, action: "start"},
+            success: function(response){
+                // 检测开始，等待进度更新
+            },
+            error: function(xhr, status, error){
+                //layer.msg('检测失败，请检查服务端运行状态！');
+                var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : '设置保存失败！';
+                layer.msg(errorMessage, {icon: 2});
+
+                $('#VidClassDir').prop('disabled', false);
+                $(data.elem).prop('disabled', false).text('开始检测');
+            }
+        });
+
+        return false; // 阻止表单跳转
+    });
+
+    function updateProgress() {
+        $.ajax({
+            url: '/vidsimdtion/progress_update',
+            type: 'GET',
+            success: function(data) {
+                element.progress('progressBar', data.progress + '%');
+                $('#progress-text').text(`完成进度：${data.current}/${data.total}`);
+                if(data.progress >= 100) {
+                    $('#VidClassDir').prop('disabled', false);
+                    $('#download-btn').prop('disabled', false);
+                    $('#add-submit').prop('disabled', false).text('开始检测');
+                    layer.msg('检测完成');
+                    clearInterval(progressInterval);
+                }
+            }
+        });
+    }
+
+    function startProgressInterval() {
+        // 获取视频总数
+        $.ajax({
+            url: '/vidsimdtion/video_count',
+            type: 'GET',
+            success: function(data) {
+                $('#progress-text').text(`完成进度：0/${data.total}`);
+            }
+        });
+
+        // 每5秒更新一次进度
+        progressInterval = setInterval(updateProgress, 5000);
+    }
+
+  // 为保存设置按钮绑定点击事件
+  document.getElementById('save').addEventListener('click', function(){
+    // 获取文本框的值
+    var vidClassDir = document.getElementById('VidClassDir').value;
+    // 使用 layui 的 ajax 方法向后端发送请求
+    $.ajax({
+      url: '/vidsimdtion/', // 后端处理请求的URL
+      type: 'POST',
+      data: {
+        action: 'save',
+        dir: vidClassDir
+      },
+      success: function(res){
+        // 请求成功的回调函数
+        layer.msg('设置保存成功！', {icon: 1});
+      },
+      error: function(xhr, status, error){
+        // 请求失败的回调函数
+        var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : '设置保存失败！';
+            layer.msg(errorMessage, {icon: 2});
+      }
+    });
+  });
+
+});
+
+</script>
+

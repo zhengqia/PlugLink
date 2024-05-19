@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>批量视频合成-进度</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../../../static/res/layui/css/layui.css" rel="stylesheet">
+  <link href="../../../static/res/adminui/dist/css/admin.css" rel="stylesheet">
+  <script src="../../../static/res/jquery-3.6.0.min.js"></script></script></script>
+  <script src="../../../static/res/layui/layui.js"></script></script></script> 
+  <script src="../../../static/res/socket.io.js"></script></script></script> 
+</head>
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<style>
+.custom-fieldset {
+    width: 1000px; /* 设置fieldset的宽度 */
+	border: 1px solid #eeeeee; /* 设置边框 */
+}
+.custom-legend {
+    color: 16baaa; /* 设置标题字体颜色 */
+    font-size: 20px; /* 设置标题字体大小 */
+    font-weight: bold; /* 设置标题字体粗细 */
+
+}
+	
+.button-container {
+    text-align: center; /* 设置按钮容器的文本对齐方式为右对齐 */
+
+}
+	
+.layui-btn {
+	font-size: 20px; /* 设置字体大小为 20 像素 */
+}
+
+</style>
+	
+<body>
+<div style="padding: 32px;">
+	<div class="layui-fluid">
+		<div class="layui-row layui-col-space15">
+			<div class="layui-container">
+				<form class="layui-form" action="" lay-filter="component-form-group">
+					<div class="layui-row">
+						<div class="layui-col-md-offset2 layui-col-md-6">
+
+							<div class="layui-progress layui-progress-big" lay-filter="progressBar">
+							  <div class="layui-progress-bar" lay-percent="0%"></div>
+							</div>
+							<br><div id="current-progress"></div>
+							<br><div id="output_dirmsg"></div>
+							<br><div style="text-align: center;">
+							<button class="layui-btn layui-btn-primary layui-border layui-btn-disabled" id="backButton">返回上页</button>
+							<button type="button" class="layui-btn layui-btn-fluid" id="opendir" style="width: 300px;">打开所在目录</button>
+							<button type="button" class="layui-btn layui-btn-fluid layui-bg-red" id="stop" style="width: 200px;">中止任务</button>
+							<button type="button" class="layui-btn layui-btn-fluid layui-bg-orange layui-btn-disabled" id="OK" style="width: 200px;">完成</button>
+							</div>
+
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
+<script>
+// 全局变量，用于保存定时器的引用
+var progressInterval;
+
+layui.use(['element','jquery', 'layer'], function(){
+    var $ = layui.jquery;
+	var element = layui.element; 
+    var layer = layui.layer;
+
+    // 页面加载完成后自动执行
+    $(document).ready(function(){
+        // 自动发送请求执行视频合成操作
+        $.ajax({
+            type: "POST",
+            url: "/videosyn/",
+            contentType: "application/json",
+            data: JSON.stringify({action: "exevid"}),
+            success: function(response){
+				
+                console.log("Output Directory:", response.output_dir);
+                // 更新“打开所在目录”按钮的点击事件，以显示路径
+                $('#opendir').off('click').on('click', function(){
+                $.ajax({
+                    type: "POST",
+                    url: "/videosyn/",  // 同一个后端路由处理不同的action
+                    contentType: "application/json",
+                    data: JSON.stringify({action: "opendir", output_dir: response.output_dir}),
+                    success: function(response) {
+						console.log(response.message);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error opening directory: " + status + ", " + error);
+                    }
+
+                });
+			  });
+
+			// 更新显示目录路径的<div>元素
+            $('#output_dirmsg').text('合成视频存储目录：' + response.output_dir);
+				
+            },
+            error: function(xhr, status, error) {
+                console.error("An error occurred: " + status + ", " + error);
+            }
+        });
+    });
+
+	$(document).ready(function() {
+		progressInterval = setInterval(function(){
+			// 请求并更新进度信息的代码
+		}, 1000); // 每秒更新一次
+
+		// "中止任务"按钮点击事件
+		$('#stop').on('click', function() {
+			// 发送停止任务的请求到后端
+			$.ajax({
+				type: "POST",
+				url: "/videosyn/",  // 确保这个URL指向正确的后端路由
+				contentType: "application/json",
+				data: JSON.stringify({action: "stoptask"}),  // 发送中止任务的动作标识
+				success: function(response) {
+					console.log(response.message);
+					// 清除定时器，停止进度信息的更新
+					clearInterval(progressInterval);
+					// 按钮变为不可用
+					$('#stop').addClass('layui-btn-disabled').prop('disabled', true);
+					// 显示正在终止任务的信息
+					$("#current-progress").text("正在终止任务中....");
+					// 解除“返回上页”按钮的禁用状态
+                    $('#backButton').removeClass('layui-btn-disabled').on('click', function(){
+                        window.location.href = 'index.html'; // 根据实际页面地址修改
+                    });	
+					
+					// 延迟3秒后自动返回上一页
+//					setTimeout(function() {
+//						window.history.back();  // 返回上一页
+//					}, 3000);  // 延迟时间为3000毫秒（3秒）
+				},
+				error: function(xhr, status, error) {
+                	console.error("Error stopping task: " + status + ", " + error);
+				}
+			});
+		});
+	});
+	
+	
+	// 定时请求进度信息并更新进度条
+    progressInterval = setInterval(function(){
+        $.ajax({
+            type: "POST",
+            url: "/videosyn/", // 根据实际后端路由进行修改
+            contentType: "application/json",
+            data: JSON.stringify({
+                action: "progress"
+            }),
+            success: function(data) {
+                // 更新总进度条
+                var totalPercent = (data.completed / data.total) * 100;
+                element.progress('progressBar', totalPercent.toFixed(2) + '%');
+                
+//                // 更新视频上传进度条
+//                var vidPercent = (data.currentVideo / data.totalVideos) * 100;
+//                element.progress('vidprogressBar', vidPercent.toFixed(2) + '%');
+                
+                // 更新正在处理的视频数
+                $("#current-progress").text(`正在处理：${data.completed}/${data.total}`);
+                
+                // 如果完成，激活完成按钮
+                if(data.completed === data.total){
+
+                    clearInterval(progressInterval); // 停止定时获取进度
+                    $('#backButton').removeClass('layui-btn-disabled').prop('disabled', false); // 解除“返回上页”按钮的禁用状态
+					$('#stop').removeClass('layui-btn-disabled').prop('disabled', true); // “中止”按钮的禁用状态
+                    $("#current-progress").text("任务已完成。");
+                    $('#OK').removeClass('layui-btn-disabled').on('click', function(){
+                        window.location.href = 'index.html'; // 根据实际页面地址修改
+                    });			
+                    $('#backButton').removeClass('layui-btn-disabled').on('click', function(){
+                        window.location.href = 'index.html'; // 根据实际页面地址修改
+                    });	
+
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("获取进度信息失败", status, error);
+            }
+        });
+    }, 1000); // 每秒更新一次
+
+
+});
+</script>
