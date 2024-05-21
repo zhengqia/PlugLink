@@ -1,5 +1,7 @@
 # PlugLink
 
+[中文](README.md) | [English](README_US.md)
+
 作者：心易
 
 ![LOGO横](https://github.com/zhengqia/PlugLink/assets/155066150/ddfd70b3-3c20-4bb1-b362-94425f902c85)
