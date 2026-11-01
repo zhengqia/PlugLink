@@ -4,10 +4,10 @@
 
 作者：心易
 
-![LOGO横](https://github.com/zhengqia/PlugLink/assets/155066150/ddfd70b3-3c20-4bb1-b362-94425f902c85)
-
 # 2026年按
-网站已经升级为VicroCode，欢迎移步至新的网站：https://www.vicoco.cn/（国内站） https://www.vicrocode.com/ （国际站）
+网站已经升级为VicroCode，欢迎移步至新的网站：
+https://www.vicoco.cn/  （国内站） 
+https://www.vicrocode.com/ （国际站）
 VicroCode是一个轻量级智能体/web应用部署代码托管平台，**告别昂贵服务器和复杂的部署**！
 您可免费部署您的应用，迅速验证项目可行性。
 全面支持前后端技术栈（HTML+Python+SQLite+LanceDB），提供网页应用管理器、Python管理器、LanceDB知识库、SQLite数据库在线管理器等实用工具，零门槛轻松操作。免复杂配置实现代码快速部署发布，搭建优质代码流通生态，助力开发者实现技术变现，让每段代码都能迸发商业与实用价值。
